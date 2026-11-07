@@ -466,7 +466,3 @@ Reply "next step" to continue, or tell me what to fix.
 
 - If the human reports a bug, fix it, then give the checkpoint again for that step.
 - If a step is falling behind its target time, say so in the checkpoint and suggest what to cut (see the cut list in section 11).
-
----
-
-@AGENTS.md
