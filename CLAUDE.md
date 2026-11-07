@@ -40,7 +40,7 @@ Tech or Open Tech (Wildcard).
 | `alumni` | **LinkedIn (OIDC)** — fallback: any email (demo only) | Create profile + Path Story (AI-assisted), add their **Calendly link**, set help types + monthly limit, see booked chats with resume + AI snapshot, mark completed, toggle "open to refer" |
 | `admin` | Team members | Verify alumni (Pending → Verified) |
 
-**Full profiles are gated:** the full alumni profile (full name, bio, hometown, clubs, fun facts, Path Story, LinkedIn, Calendly booking) is visible **only to logged-in users with a Sac State account** (students via @csus.edu, plus verified alumni and admins). Enforce this in **both** the UI (middleware redirect to `/login?next=/alumni/[id]`) **and** the database (RLS — anonymous users can only read the limited `alumni_public` view).
+**Full profiles are gated:** the full alumni profile (full name, bio, hometown, clubs, fun facts, Path Story, LinkedIn, Calendly booking) is visible **only to logged-in users with a Sac State account** (students via @csus.edu, plus verified alumni and admins). Enforce this in **both** the UI (`src/proxy.ts` redirect to `/login?next=/alumni/[id]`) **and** the database (RLS — anonymous users can only read the limited `alumni_public` view).
 
 Alumni start `verified = false` ("Pending"). Admin approves → **"Verified Hornet Alum ✓"** badge. LinkedIn OIDC only gives name/email/photo (not education), so alumni self-report grad year/major and admins verify. Pitch: "In production, the Sac State Alumni Association verifies."
 
@@ -281,7 +281,7 @@ for each row execute function public.enforce_csus_email();
 - Enable RLS on all tables.
 - `profiles`: **anonymous users cannot read `profiles` at all** — they only get `alumni_public`. Logged-in Sac State users (students with @csus.edu, verified alumni, admins) can read full alumni profiles (never `resume_path` — use explicit column lists). Users update only their own row; only admins set `verified`.
 - `matches`: only the owning student can read/update.
-- **UI gate too:** Next.js middleware protects `/alumni/[id]`, `/plan`, `/chats`, `/inbox`, `/profile` → redirect to `/login?next=...` when logged out.
+- **UI gate too:** Next.js 16 proxy (`src/proxy.ts`, formerly "middleware") protects `/alumni/[id]`, `/plan`, `/chats`, `/inbox`, `/profile` → redirect to `/login?next=...` when logged out.
 - `launch_plans`: only the owning student.
 - `requests`: visible only to `student_id` or `alumni_id`; student creates; alum updates status/open_to_refer.
 - `kudos`: read by all; insert only by a student with a completed request with that alum.
@@ -398,7 +398,7 @@ One person builds everything with Claude Code, **in this order**. Finish and tes
 | # | Task | Target time |
 |---|---|---|
 | 1 | **Foundation:** Next.js + TypeScript + Tailwind + shadcn/ui, Supabase client, `.env.example`, database migration + RLS + `alumni_public` view, Hive Network layout/nav | by ~4:30pm |
-| 2 | **Login:** csus.edu email + password for students; email + password fallback for alumni (LinkedIn later, only if time); middleware login gate | by ~5:00pm |
+| 2 | **Login:** csus.edu email + password for students; email + password fallback for alumni (LinkedIn later, only if time); `proxy.ts` login gate | by ~5:00pm |
 | 3 | **Sample data + seed script:** Claude writes `supabase/sample-data.json` (10 alumni with Path Stories + About me sharing hometowns/clubs with demo student Alex, 3 students, a few requests) and a seed script that loads it | by ~5:45pm |
 | 4 | **Public All Alumni directory:** preview cards, filters, search, 🔒 login prompt | by ~6:30pm |
 | 5 | **Full alumni profile (login required):** About me, Path Story timeline, Book a 1:1 button | by ~7:15pm |
@@ -466,3 +466,7 @@ Reply "next step" to continue, or tell me what to fix.
 
 - If the human reports a bug, fix it, then give the checkpoint again for that step.
 - If a step is falling behind its target time, say so in the checkpoint and suggest what to cut (see the cut list in section 11).
+
+---
+
+@AGENTS.md
