@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import { getDirectory } from "@/lib/alumni";
+import { AlumniDirectory } from "@/components/student-side/alumni-directory";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -10,6 +13,27 @@ const FEATURES = [
   { icon: "📝", title: "Show up prepared", body: "AI drafts your first message and prep questions tailored to the alum's journey." },
   { icon: "🤝", title: "Get to a referral", body: "After a great chat, alumni can mark you open to refer. Conversations become opportunities." },
 ];
+
+async function DirectoryTeaser() {
+  const { alumni, unlocked } = await getDirectory();
+  if (alumni.length === 0) return null;
+  return (
+    <section className="bg-secondary/50 py-16">
+      <div className="mx-auto max-w-6xl px-4">
+        <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h2 className="text-2xl font-bold text-hive-green sm:text-3xl">Meet a few Hornets</h2>
+            <p className="mt-2 text-muted-foreground">Real paths from Sac State to where they are now.</p>
+          </div>
+          <Link href="/alumni" className={buttonVariants({ variant: "outline", className: "h-10 px-4" })}>
+            See all {alumni.length} alumni →
+          </Link>
+        </div>
+        <AlumniDirectory alumni={alumni} unlocked={unlocked} loggedIn={unlocked} limit={3} />
+      </div>
+    </section>
+  );
+}
 
 export default function Home() {
   return (
@@ -58,6 +82,10 @@ export default function Home() {
           ))}
         </div>
       </section>
+
+      <Suspense>
+        <DirectoryTeaser />
+      </Suspense>
     </div>
   );
 }
