@@ -5,6 +5,8 @@ import { AlumniDirectory } from "@/components/student-side/alumni-directory";
 import { TopMatches } from "@/components/student-side/top-matches";
 import { getMatchesState } from "@/lib/matches";
 import { getCurrentUser } from "@/lib/auth";
+import { getPlan } from "@/lib/plan";
+import { LaunchPlan } from "@/components/student-side/launch-plan";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -41,12 +43,18 @@ async function DirectoryTeaser() {
 async function StudentHome() {
   const [user, state] = await Promise.all([getCurrentUser(), getMatchesState()]);
   if (!user || state.status === "not-student") return null;
+  const plan = state.status === "ready" ? await getPlan() : null;
   return (
     <section className="mx-auto max-w-6xl px-4 pt-10">
       <h1 className="mb-6 text-3xl font-bold tracking-tight text-hive-green">
         Welcome back{user.fullName ? `, ${user.fullName.split(" ")[0]}` : ""} 🐝
       </h1>
       <TopMatches initial={state} />
+      {plan && (
+        <div className="mt-8">
+          <LaunchPlan plan={plan} compact />
+        </div>
+      )}
     </section>
   );
 }

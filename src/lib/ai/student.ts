@@ -275,3 +275,80 @@ Return JSON:
     PrepSchema,
   );
 }
+
+// ---------------------------------------------------------------------------
+// AI #4b — Launch Plan: order the student's matches into steps
+
+export type PlanStep = { order: number; alumni_id: string; step_title: string; why: string; chat_type: string };
+
+const PlanSchema = z.object({
+  steps: z.array(
+    z.object({
+      key: z.string(),
+      step_title: z.string(),
+      why: z.string(),
+      chat_type: z.string(),
+    }),
+  ),
+});
+
+const DEFAULT_TITLES = ["Learn the path", "Get interview-ready", "Get referral-ready"];
+const DEFAULT_TYPES = ["coffee_chat", "mock_interview", "coffee_chat"];
+
+export async function launchPlan(
+  goal: string,
+  matches: { alumni_id: string; full_name: string; job_title: string | null; company: string | null; reasons: string[]; help_types: string[]; path: string }[],
+): Promise<PlanStep[]> {
+  const keyed = matches.map((m, i) => ({ key: `A${i + 1}`, ...m }));
+  const byKey = new Map(keyed.map((k) => [k.key, k]));
+  const fallback = (): PlanStep[] =>
+    keyed.map((k, i) => ({
+      order: i + 1,
+      alumni_id: k.alumni_id,
+      step_title: DEFAULT_TITLES[i] ?? "Keep going",
+      why: k.reasons.slice(0, 2).join(" · "),
+      chat_type: k.help_types.includes(DEFAULT_TYPES[i]) ? DEFAULT_TYPES[i] : (k.help_types.find((h) => h !== "referral") ?? "coffee_chat"),
+    }));
+
+  try {
+    const { steps } = await generateJSON(
+      `Turn a Sac State student's alumni matches into a Launch Plan: who to talk to first, second, third.
+
+STUDENT GOAL: ${goal}
+
+MATCHES
+${JSON.stringify(keyed.map((k) => ({ key: k.key, name: k.full_name, role: [k.job_title, k.company].filter(Boolean).join(" @ "), why_matched: k.reasons, offers: k.help_types, path: k.path })))}
+
+RULES
+- Exactly one step per match (${keyed.length} step${keyed.length > 1 ? "s" : ""}). Use each key once.
+- Order them as a progression: "Learn the path" (someone whose journey mirrors the student's) → "Get interview-ready" (someone who can run a mock interview / give sharp feedback) → "Get referral-ready" (someone senior who can refer). With fewer matches, keep the earliest stages.
+- step_title: 2–4 words, like the stages above.
+- why: ONE sentence (≤ 20 words) explaining why this person at this stage, using true facts from the input.
+- chat_type: one of the alum's "offers" except "referral" — the best chat for this stage.
+
+Return JSON: { "steps": [ { "key": "A2", "step_title": "Learn the path", "why": "…", "chat_type": "coffee_chat" } ] }`,
+      PlanSchema,
+    );
+    const seen = new Set<string>();
+    const out: PlanStep[] = [];
+    for (const s of steps) {
+      const k = byKey.get(s.key);
+      if (!k || seen.has(k.key)) continue;
+      seen.add(k.key);
+      const bookable = k.help_types.filter((h) => h !== "referral");
+      out.push({
+        order: out.length + 1,
+        alumni_id: k.alumni_id,
+        step_title: s.step_title.trim(),
+        why: s.why.trim(),
+        chat_type: bookable.includes(s.chat_type) ? s.chat_type : (bookable[0] ?? "coffee_chat"),
+      });
+    }
+    // Any match the model skipped goes at the end.
+    for (const k of keyed) if (!seen.has(k.key)) out.push({ ...fallback()[keyed.indexOf(k)], order: out.length + 1 });
+    return out.length ? out : fallback();
+  } catch (err) {
+    console.warn("[launchPlan] AI unavailable, using default order:", (err as Error).message);
+    return fallback();
+  }
+}
