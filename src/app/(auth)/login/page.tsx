@@ -11,11 +11,11 @@ async function RedirectIfLoggedIn() {
 
 export default function LoginPage() {
   return (
-    <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center bg-secondary/40 px-4 py-12">
+    <div className="flex min-h-[calc(100vh-8rem)] items-center justify-center px-5 py-12">
       <Suspense>
         <RedirectIfLoggedIn />
       </Suspense>
-      <Suspense fallback={<div className="h-[480px] w-full max-w-md animate-pulse rounded-2xl bg-white" />}>
+      <Suspense fallback={<div className="h-[440px] w-full max-w-sm animate-pulse rounded-2xl border border-line bg-white" />}>
         <LoginForm />
       </Suspense>
     </div>

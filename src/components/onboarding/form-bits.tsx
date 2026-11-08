@@ -13,10 +13,10 @@ export const splitList = (s: string, sep: RegExp = /,/) =>
 
 export function Card({ title, subtitle, children }: { title: string; subtitle?: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border bg-white p-6 shadow-sm sm:p-8">
-      <h2 className="text-xl font-bold text-hive-green">{title}</h2>
-      {subtitle && <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>}
-      <div className="mt-6 space-y-5">{children}</div>
+    <section className="rounded-2xl border border-line bg-white p-6 sm:p-8">
+      <h2 className="text-lg font-semibold tracking-tight text-ink">{title}</h2>
+      {subtitle && <p className="mt-1 text-sm text-stone">{subtitle}</p>}
+      <div className="mt-5 space-y-5">{children}</div>
     </section>
   );
 }
@@ -36,11 +36,11 @@ export function Field({
 }) {
   return (
     <div className={cn("space-y-1.5", className)}>
-      <Label htmlFor={htmlFor} className="text-sm font-semibold">
+      <Label htmlFor={htmlFor} className="text-sm font-medium text-ink">
         {label}
       </Label>
       {children}
-      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+      {hint && <p className="text-xs text-stone">{hint}</p>}
     </div>
   );
 }
@@ -63,7 +63,7 @@ export function TextField(props: {
         value={props.value}
         placeholder={props.placeholder}
         onChange={(e) => props.onChange(e.target.value)}
-        className="h-11 text-base"
+        className="h-11 rounded-xl bg-white text-[15px]"
       />
     </Field>
   );
@@ -86,7 +86,7 @@ export function AreaField(props: {
         rows={props.rows ?? 3}
         placeholder={props.placeholder}
         onChange={(e) => props.onChange(e.target.value)}
-        className="text-base"
+        className="rounded-xl bg-white text-[15px]"
       />
     </Field>
   );
@@ -115,11 +115,10 @@ export function Chips({
             aria-pressed={on}
             onClick={() => onChange(on ? value.filter((v) => v !== o) : [...value, o])}
             className={cn(
-              "rounded-full border px-3.5 py-1.5 text-sm font-medium transition-colors",
-              on ? "border-hive-green bg-hive-green text-white" : "bg-white text-foreground hover:border-hive-green",
+              "rounded-full px-3.5 py-1.5 text-sm transition-colors",
+              on ? "bg-ink text-white" : "bg-stone-100 text-ink hover:bg-stone-200",
             )}
           >
-            {on ? "✓ " : ""}
             {labels?.[o] ?? o}
           </button>
         );
@@ -174,16 +173,16 @@ export const aboutToInput = (a: AboutState) => ({
 export function AboutMeFields({ value, onChange }: { value: AboutState; onChange: (v: AboutState) => void }) {
   const set = (k: keyof AboutState) => (v: string) => onChange({ ...value, [k]: v });
   return (
-    <Card title="🐝 About me" subtitle="The personal stuff — we use it to find alumni who share your story (“You're both from Stockton and both in ACM”).">
-      <AreaField id="bio" label="Short bio" value={value.bio} onChange={set("bio")} rows={4} hint="2–4 sentences, in your own voice." />
+    <Card title="About me">
+      <AreaField id="bio" label="Short bio" value={value.bio} onChange={set("bio")} rows={4} placeholder="A few sentences about you" />
       <div className="grid gap-5 sm:grid-cols-2">
-        <TextField id="hometown" label="📍 Hometown" value={value.hometown} onChange={set("hometown")} placeholder="Stockton, CA" />
-        <TextField id="languages" label="🗣 Languages" value={value.languages} onChange={set("languages")} placeholder="English, Spanish" hint="Comma-separated" />
-        <TextField id="clubs" label="🐝 Sac State clubs & orgs" value={value.clubs} onChange={set("clubs")} placeholder="ACM, SHPE, Hmong Student Association" hint="Comma-separated" />
-        <TextField id="hobbies" label="🎯 Hobbies & interests" value={value.hobbies} onChange={set("hobbies")} placeholder="Soccer, cooking, hackathons" hint="Comma-separated" />
+        <TextField id="hometown" label="Hometown" value={value.hometown} onChange={set("hometown")} placeholder="Stockton, CA" />
+        <TextField id="languages" label="Languages" value={value.languages} onChange={set("languages")} placeholder="English, Spanish" />
+        <TextField id="clubs" label="Clubs" value={value.clubs} onChange={set("clubs")} placeholder="ACM, SHPE" />
+        <TextField id="hobbies" label="Hobbies" value={value.hobbies} onChange={set("hobbies")} placeholder="Soccer, cooking" />
       </div>
-      <TextField id="favorite_spot" label="📚 Favorite Sac State spot or memory" value={value.favorite_spot} onChange={set("favorite_spot")} placeholder="Library 3rd floor, the Arboretum…" />
-      <AreaField id="fun_facts" label="⭐ Fun facts" value={value.fun_facts} onChange={set("fun_facts")} rows={3} placeholder={"Ran the Sac State half marathon\nCan cook pho from scratch"} hint="One per line — 2 or 3 is perfect." />
+      <TextField id="favorite_spot" label="Favorite campus spot" value={value.favorite_spot} onChange={set("favorite_spot")} placeholder="Library 3rd floor" />
+      <AreaField id="fun_facts" label="Fun facts" value={value.fun_facts} onChange={set("fun_facts")} rows={3} placeholder={"Ran the Sac State half marathon\nCan cook pho from scratch"} />
     </Card>
   );
 }

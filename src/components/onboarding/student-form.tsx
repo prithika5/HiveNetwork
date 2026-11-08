@@ -2,6 +2,7 @@
 
 import { safe } from "@/lib/safe";
 import { useRef, useState, useTransition } from "react";
+import { FileCheck2, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { saveStudentProfile, uploadResume } from "@/app/onboarding/actions";
 import { AboutMeFields, AreaField, Card, Chips, Field, TextField, aboutFromProfile, aboutToInput, splitList, type AboutState } from "./form-bits";
@@ -37,7 +38,7 @@ export function StudentForm({ profile, mode, next }: { profile: OwnProfile; mode
       if (res.skills.length) {
         const merged = [...new Set([...splitList(skills), ...res.skills])];
         setSkills(merged.join(", "));
-        setResumeMsg({ tone: "ok", text: `✨ Found ${res.skills.length} skills${res.summary ? ` — “${res.summary.replace(/[.!\s]+$/, "")}”` : ""}. Edit them below.` });
+        setResumeMsg({ tone: "ok", text: `✨ Found ${res.skills.length} skills` });
       } else {
         setResumeMsg({ tone: "warn", text: res.aiError ?? "Resume saved." });
       }
@@ -67,12 +68,12 @@ export function StudentForm({ profile, mode, next }: { profile: OwnProfile; mode
 
   return (
     <form onSubmit={onSubmit} className="space-y-6">
-      <Card title="🎓 You at Sac State">
+      <Card title="You">
         <TextField id="full_name" label="Full name" value={about.full_name} onChange={(v) => setAbout({ ...about, full_name: v })} />
         <div className="grid gap-5 sm:grid-cols-2">
           <TextField id="major" label="Major" value={major} onChange={setMajor} placeholder="Computer Science" />
-          <Field label="Expected graduation year" htmlFor="class_year">
-            <select id="class_year" value={classYear} onChange={(e) => setClassYear(e.target.value)} className="h-11 w-full rounded-lg border bg-white px-3 text-base">
+          <Field label="Grad year" htmlFor="class_year">
+            <select id="class_year" value={classYear} onChange={(e) => setClassYear(e.target.value)} className="h-11 w-full rounded-xl border border-line bg-white px-3 text-[15px]">
               <option value="">Select…</option>
               {years.map((y) => (
                 <option key={y} value={y}>
@@ -82,46 +83,45 @@ export function StudentForm({ profile, mode, next }: { profile: OwnProfile; mode
             </select>
           </Field>
         </div>
-        <Field label="Your background" hint="Optional — helps us match you with alumni who've walked the same path.">
+        <Field label="Background">
           <Chips options={BACKGROUND_TAGS} value={background} onChange={setBackground} labels={BACKGROUND_LABELS} />
         </Field>
       </Card>
 
-      <Card title="🚀 Your goal" subtitle="Everything starts here — your AI matches and Launch Plan are built from this.">
-        <AreaField id="goal" label="What's your career goal?" value={goal} onChange={setGoal} rows={2} placeholder="Land a software engineering internship by summer" />
+      <Card title="Goal">
+        <AreaField id="goal" label="Career goal" value={goal} onChange={setGoal} rows={2} placeholder="Land a software engineering internship by summer" />
         <Field label="Target field">
           <Chips options={FIELDS} value={goalField ? [goalField] : []} onChange={(v) => setGoalField(v.filter((x) => x !== goalField)[0] ?? "")} />
         </Field>
       </Card>
 
-      <Card title="📄 Resume & skills" subtitle="Your resume stays private. You choose, per chat, whether an alum can see it.">
-        <div className="rounded-xl border-2 border-dashed p-5 text-center">
+      <Card title="Resume">
+        <div className="rounded-xl border border-dashed border-stone-300 p-6 text-center">
           <input ref={fileRef} type="file" accept="application/pdf" className="hidden" onChange={(e) => onResume(e.target.files?.[0])} />
-          <p className="font-medium">{hasResume ? "✅ Resume uploaded" : "Upload your resume (PDF)"}</p>
-          <p className="mt-1 text-xs text-muted-foreground">AI pulls out your skills automatically.</p>
-          <Button type="button" variant="outline" className="mt-3 h-10 px-4" disabled={uploading} onClick={() => fileRef.current?.click()}>
-            {uploading ? "✨ Reading your resume…" : hasResume ? "Replace PDF" : "Choose PDF"}
+          {hasResume ? <FileCheck2 className="mx-auto size-6 text-honey" strokeWidth={1.6} /> : <Upload className="mx-auto size-6 text-stone" strokeWidth={1.6} />}
+          <Button type="button" variant="outline" className="mt-3 h-9 rounded-full bg-white px-4" disabled={uploading} onClick={() => fileRef.current?.click()}>
+            {uploading ? "Reading…" : hasResume ? "Replace PDF" : "Upload PDF"}
           </Button>
-          <p className="mt-3 text-[11px] text-muted-foreground">Demo note: AI runs on Gemini&apos;s free tier — please use a sample resume.</p>
+          <p className="mt-3 text-xs text-stone">Sample resumes only for the demo</p>
         </div>
         {resumeMsg && (
           <p
             className={`rounded-lg p-3 text-sm ${
-              resumeMsg.tone === "ok" ? "bg-hive-gold-light text-hive-green" : resumeMsg.tone === "warn" ? "bg-secondary" : "bg-destructive/10 text-destructive"
+              resumeMsg.tone === "ok" ? "bg-honey-soft/60 text-ink" : resumeMsg.tone === "warn" ? "bg-secondary" : "bg-destructive/10 text-destructive"
             }`}
           >
             {resumeMsg.text}
           </p>
         )}
-        <TextField id="skills" label="Skills" value={skills} onChange={setSkills} placeholder="Python, React, SQL" hint="Comma-separated — edit freely." />
+        <TextField id="skills" label="Skills" value={skills} onChange={setSkills} placeholder="Python, React, SQL" />
       </Card>
 
       <AboutMeFields value={about} onChange={setAbout} />
 
       {error && <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
-      <div className="sticky bottom-4 flex justify-end">
-        <Button type="submit" disabled={saving || uploading} className="h-12 px-8 text-base shadow-lg">
-          {saving ? "Saving…" : mode === "onboarding" ? "Find my alumni matches →" : "Save changes"}
+      <div className="flex justify-end">
+        <Button type="submit" disabled={saving || uploading} className="h-11 rounded-full px-7 text-[15px]">
+          {saving ? "Saving…" : mode === "onboarding" ? "Find matches" : "Save"}
         </Button>
       </div>
     </form>

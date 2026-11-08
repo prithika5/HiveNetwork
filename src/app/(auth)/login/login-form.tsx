@@ -2,6 +2,8 @@
 
 import { useActionState, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { Lock } from "lucide-react";
+import { HornetIcon } from "@/components/hive-logo";
 import { authenticate, signInWithLinkedIn, type AuthState } from "./actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,17 +22,21 @@ export function LoginForm() {
   const linkedinError = params.get("error") === "linkedin";
   const gated = next.startsWith("/alumni/");
 
+  const field = "h-11 rounded-xl bg-white text-[15px]";
   return (
-    <div className="w-full max-w-md">
+    <div className="w-full max-w-sm">
+      <HornetIcon className="mx-auto mb-6 h-10 w-10" />
+      <h1 className="mb-6 text-center text-2xl font-semibold tracking-tight text-ink">{mode === "login" ? "Log in" : "Sign up"}</h1>
+
       {gated && (
-        <div className="mb-4 rounded-2xl border border-hive-gold bg-hive-gold-light p-4 text-sm text-hive-green">
-          🔒 Log in with your Sac State account to see the full alumni profile.
-        </div>
+        <p className="mb-4 flex items-center justify-center gap-2 text-sm text-stone">
+          <Lock className="size-3.5" strokeWidth={2} />
+          Log in to see this profile
+        </p>
       )}
 
-      <div className="rounded-2xl border bg-white p-6 shadow-sm sm:p-8">
-        {/* Student / Alumni tabs */}
-        <div className="mb-6 grid grid-cols-2 gap-1 rounded-xl bg-secondary p-1" role="tablist">
+      <div className="rounded-2xl border border-line bg-white p-6">
+        <div className="mb-5 grid grid-cols-2 gap-1 rounded-full bg-stone-100 p-1" role="tablist">
           {(["student", "alumni"] as const).map((r) => (
             <button
               key={r}
@@ -38,39 +44,27 @@ export function LoginForm() {
               role="tab"
               aria-selected={role === r}
               onClick={() => setRole(r)}
-              className={cn(
-                "rounded-lg py-2 text-sm font-semibold transition-colors",
-                role === r ? "bg-hive-green text-white shadow" : "text-hive-green/70 hover:text-hive-green",
-              )}
+              className={cn("rounded-full py-1.5 text-sm font-medium transition-colors", role === r ? "bg-white text-ink shadow-sm" : "text-stone hover:text-ink")}
             >
-              {r === "student" ? "🎓 Student" : "🐝 Alumni"}
+              {r === "student" ? "Student" : "Alumni"}
             </button>
           ))}
         </div>
 
-        <h1 className="text-2xl font-bold text-hive-green">
-          {mode === "login" ? "Welcome back" : role === "student" ? "Join as a student" : "Join as an alum"}
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {role === "student"
-            ? "Use your Sac State @csus.edu email."
-            : "Alumni sign in with LinkedIn, or with email for the demo."}
-        </p>
-
         {role === "alumni" && LINKEDIN_ENABLED && (
-          <form action={signInWithLinkedIn} className="mt-6">
+          <form action={signInWithLinkedIn}>
             <input type="hidden" name="next" value={next} />
-            <Button type="submit" className="h-11 w-full bg-[#0A66C2] text-base text-white hover:bg-[#0A66C2]/90">
+            <Button type="submit" variant="outline" className="h-11 w-full rounded-full bg-white text-[15px]">
               Continue with LinkedIn
             </Button>
-            <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
-              <span className="h-px flex-1 bg-border" /> or use email <span className="h-px flex-1 bg-border" />
+            <div className="my-4 flex items-center gap-3 text-xs text-stone">
+              <span className="h-px flex-1 bg-line" /> or <span className="h-px flex-1 bg-line" />
             </div>
           </form>
         )}
-        {linkedinError && <p className="mt-4 text-sm text-destructive">LinkedIn sign-in didn&apos;t work — use email instead.</p>}
+        {linkedinError && <p className="mb-3 text-sm text-destructive">LinkedIn sign-in failed. Use email.</p>}
 
-        <form action={action} className={cn("space-y-4", !(role === "alumni" && LINKEDIN_ENABLED) && "mt-6")}>
+        <form action={action} className="space-y-3.5">
           <input type="hidden" name="role" value={role} />
           <input type="hidden" name="mode" value={mode} />
           <input type="hidden" name="next" value={next} />
@@ -78,58 +72,30 @@ export function LoginForm() {
           {mode === "signup" && (
             <div className="space-y-1.5">
               <Label htmlFor="full_name">Full name</Label>
-              <Input id="full_name" name="full_name" autoComplete="name" required className="h-11 text-base" />
+              <Input id="full_name" name="full_name" autoComplete="name" required className={field} />
             </div>
           )}
           <div className="space-y-1.5">
-            <Label htmlFor="email">{role === "student" ? "Sac State email" : "Email"}</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              autoComplete="email"
-              required
-              placeholder={role === "student" ? "you@csus.edu" : "you@example.com"}
-              className="h-11 text-base"
-            />
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" name="email" type="email" autoComplete="email" required placeholder={role === "student" ? "you@csus.edu" : "you@example.com"} className={field} />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              autoComplete={mode === "login" ? "current-password" : "new-password"}
-              minLength={6}
-              required
-              className="h-11 text-base"
-            />
+            <Input id="password" name="password" type="password" autoComplete={mode === "login" ? "current-password" : "new-password"} minLength={6} required className={field} />
           </div>
 
-          {state.error && <p className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{state.error}</p>}
-          {state.info && <p className="rounded-lg bg-hive-gold-light p-3 text-sm text-hive-green">{state.info}</p>}
+          {state.error && <p className="rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{state.error}</p>}
+          {state.info && <p className="rounded-xl bg-honey-soft/60 p-3 text-sm text-ink">{state.info}</p>}
 
-          <Button type="submit" disabled={pending} className="h-11 w-full text-base">
-            {pending ? "One sec…" : mode === "login" ? "Log in" : "Create account"}
+          <Button type="submit" disabled={pending} className="h-11 w-full rounded-full text-[15px]">
+            {pending ? "One sec…" : mode === "login" ? "Log in" : "Sign up"}
           </Button>
         </form>
-
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          {mode === "login" ? "New to Hive Network? " : "Already have an account? "}
-          <button
-            type="button"
-            onClick={() => setMode(mode === "login" ? "signup" : "login")}
-            className="font-semibold text-hive-green underline-offset-4 hover:underline"
-          >
-            {mode === "login" ? "Create an account" : "Log in"}
-          </button>
-        </p>
-        {role === "alumni" && mode === "signup" && (
-          <p className="mt-3 text-center text-xs text-muted-foreground">
-            New alumni show as <strong>Pending</strong> until our team verifies you.
-          </p>
-        )}
       </div>
+
+      <button type="button" onClick={() => setMode(mode === "login" ? "signup" : "login")} className="mt-5 block w-full text-center text-sm text-stone hover:text-ink">
+        {mode === "login" ? "New here? Sign up" : "Have an account? Log in"}
+      </button>
     </div>
   );
 }

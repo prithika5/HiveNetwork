@@ -18,7 +18,7 @@ export const HELP_TYPE_KEYS = ["coffee_chat", "mock_interview", "resume_review",
 export const PATH_KINDS = ["education", "internship", "job", "pivot", "milestone"] as const;
 
 export const BACKGROUND_LABELS: Record<string, string> = {
-  "first-gen": "🐝 First-gen college student",
-  transfer: "🔁 Transfer student",
-  commuter: "🚗 Commuter",
+  "first-gen": "First-gen",
+  transfer: "Transfer",
+  commuter: "Commuter",
 };
