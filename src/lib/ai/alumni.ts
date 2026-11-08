@@ -115,8 +115,11 @@ Return JSON:
 {
   "headline": string,          // ≤ 12 words, e.g. "Transfer CS junior building real apps, targeting SWE internships"
   "summary": string[],         // exactly 3 short lines: strengths/projects, what they want from this chat, one thing to know
-  "relevance_to_you": string   // one sentence, addressed to the alum as "you", on why YOU specifically can help (shared path, hometown, club, skills)
-}`,
+  "relevance_to_you": string   // one sentence on why the reader can help this student (shared path, hometown, club, skills)
+}
+
+VOICE: "you" always means ${alum.full_name}, the alum reading this. Never write ${alum.full_name.split(" ")[0]}'s name. Call the student by first name, without he/she pronouns.
+Example of relevance_to_you: "You moved into tech from data, so you can show ${student.full_name.split(" ")[0]} how to present similar projects."`,
     SnapshotSchema,
   );
 }

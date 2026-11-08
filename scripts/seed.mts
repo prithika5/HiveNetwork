@@ -23,11 +23,6 @@ const DEMO_CALENDLY = process.env.DEMO_CALENDLY_URL || "https://calendly.com/hiv
 const db = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
 const data = JSON.parse(readFileSync(new URL("../supabase/sample-data.json", import.meta.url), "utf8"));
 
-/** Line-art placeholder portrait (DiceBear "notionists"). `hair` is the hairstyle picked per person in sample-data.json; expression is fixed so nobody looks goofy. */
-function avatarUrl(name: string, hair: string) {
-  return `https://api.dicebear.com/9.x/notionists/svg?seed=${encodeURIComponent(name)}&hair=${hair}&eyes=variant01&brows=variant01&lips=variant05&beardProbability=0&glassesProbability=0&gestureProbability=0&bodyIconProbability=0&backgroundColor=f3e8d6,e4ebe1,e1e8ef,efe3e8,e8e4f0`;
-}
-
 type Person = { key: string; email: string; full_name: string; [k: string]: unknown };
 const ids: Record<string, string> = {};
 const DAY = 24 * 60 * 60 * 1000;
@@ -115,7 +110,7 @@ async function main() {
         .update({
           ...profile,
           calendly_url: (a.calendly_url as string | undefined) ?? DEMO_CALENDLY,
-          photo_url: avatarUrl(a.full_name, a.avatar as string),
+          photo_url: `/avatars/${a.avatar}.svg`, // generic silhouette
           verified: true,
           onboarded: true,
           is_sample: true,

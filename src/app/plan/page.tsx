@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { getPlan } from "@/lib/plan";
+import { HornetIcon } from "@/components/hive-logo";
 import { LaunchPlan } from "@/components/student-side/launch-plan";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -12,11 +13,11 @@ async function Plan() {
   if (user.role !== "student") redirect("/");
   if (!user.onboarded) {
     return (
-      <div className="rounded-3xl border bg-white p-10 text-center">
-        <p className="text-5xl">🚀</p>
-        <p className="mt-3 font-medium">Tell us your goal first — your Launch Plan is built from it.</p>
-        <Link href="/onboarding" className={buttonVariants({ className: "mt-5 h-11 px-6 text-base" })}>
-          Finish my profile →
+      <div className="rounded-2xl border border-line bg-white p-12 text-center">
+        <HornetIcon className="mx-auto h-10 w-10" />
+        <p className="mt-3 text-stone">Add your goal first</p>
+        <Link href="/onboarding" className={buttonVariants({ className: "mt-5 h-10 rounded-full px-5" })}>
+          Finish profile
         </Link>
       </div>
     );
@@ -27,10 +28,9 @@ async function Plan() {
 
 export default function PlanPage() {
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10">
-      <h1 className="text-3xl font-bold tracking-tight text-hive-green">Launch Plan</h1>
-      <p className="mb-8 mt-1 text-muted-foreground">The right conversations, in the right order — from learning the path to getting referred.</p>
-      <Suspense fallback={<div className="h-[500px] animate-pulse rounded-3xl bg-secondary" />}>
+    <div className="mx-auto max-w-3xl px-5 py-12">
+      <h1 className="mb-8 text-3xl font-semibold tracking-tight text-ink">Plan</h1>
+      <Suspense fallback={<div className="h-[500px] animate-pulse rounded-2xl border border-line bg-white" />}>
         <Plan />
       </Suspense>
     </div>

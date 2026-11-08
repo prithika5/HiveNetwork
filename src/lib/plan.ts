@@ -7,7 +7,7 @@ export type PlanView = {
   goal: string | null;
   created_at: string;
   steps: (PlanStep & {
-    alum: { full_name: string; job_title: string | null; company: string | null; grad_year: number | null; photo_url: string | null; is_sample: boolean } | null;
+    alum: { full_name: string; job_title: string | null; company: string | null; company_domain?: string | null; grad_year: number | null; photo_url: string | null; is_sample: boolean } | null;
     chat: { id: string; status: string; type: string } | null; // latest non-referral request with this alum
   })[];
 };
@@ -35,7 +35,7 @@ export async function getPlan(): Promise<PlanView | null> {
   const steps = plan.steps as PlanStep[];
   const ids = steps.map((s) => s.alumni_id);
   const [{ data: alumni }, { data: chats }] = await Promise.all([
-    supabase.from("profiles").select("id, full_name, job_title, company, grad_year, photo_url, is_sample").in("id", ids),
+    supabase.from("profiles").select("id, full_name, job_title, company, company_domain, grad_year, photo_url, is_sample").in("id", ids),
     supabase
       .from("requests")
       .select("id, alumni_id, status, type, created_at")

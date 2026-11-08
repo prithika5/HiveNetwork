@@ -3,7 +3,7 @@
   "alumni": [
     {
       "key": "maria",
-      "avatar": "variant10",
+      "avatar": "woman",
       "email": "maria.lopez@alumni.hive.demo",
       "full_name": "Maria Lopez",
       "major": "Statistics",
@@ -37,7 +37,7 @@
     },
     {
       "key": "jordan",
-      "avatar": "variant16",
+      "avatar": "man",
       "email": "jordan.kim@alumni.hive.demo",
       "full_name": "Jordan Kim",
       "major": "Computer Science",
@@ -70,7 +70,7 @@
     },
     {
       "key": "sam",
-      "avatar": "variant05",
+      "avatar": "man",
       "email": "sam.patel@alumni.hive.demo",
       "full_name": "Sam Patel",
       "major": "Computer Science",
@@ -103,7 +103,7 @@
     },
     {
       "key": "daniela",
-      "avatar": "variant41",
+      "avatar": "woman",
       "email": "daniela.reyes@alumni.hive.demo",
       "full_name": "Daniela Reyes",
       "major": "Government",
@@ -136,7 +136,7 @@
     },
     {
       "key": "tou",
-      "avatar": "variant15",
+      "avatar": "man",
       "email": "tou.vang@alumni.hive.demo",
       "full_name": "Tou Vang",
       "major": "Computer Information Systems",
@@ -169,7 +169,7 @@
     },
     {
       "key": "aisha",
-      "avatar": "variant28",
+      "avatar": "woman",
       "email": "aisha.rahman@alumni.hive.demo",
       "full_name": "Aisha Rahman",
       "major": "Business Administration",
@@ -202,7 +202,7 @@
     },
     {
       "key": "marcus",
-      "avatar": "variant13",
+      "avatar": "man",
       "email": "marcus.johnson@alumni.hive.demo",
       "full_name": "Marcus Johnson",
       "major": "Graphic Design",
@@ -235,7 +235,7 @@
     },
     {
       "key": "grace",
-      "avatar": "variant23",
+      "avatar": "woman",
       "email": "grace.nguyen@alumni.hive.demo",
       "full_name": "Grace Nguyen",
       "major": "Nursing",
@@ -268,7 +268,7 @@
     },
     {
       "key": "ethan",
-      "avatar": "variant38",
+      "avatar": "man",
       "email": "ethan.brooks@alumni.hive.demo",
       "full_name": "Ethan Brooks",
       "major": "Finance",
@@ -301,7 +301,7 @@
     },
     {
       "key": "leila",
-      "avatar": "variant02",
+      "avatar": "woman",
       "email": "leila.haddad@alumni.hive.demo",
       "full_name": "Leila Haddad",
       "major": "Computer Engineering",
