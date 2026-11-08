@@ -181,3 +181,97 @@ Return JSON: { "matches": [ { "key": "A1", "score": 92, "reasons": ["…", "…"
   }
   return localMatches(ranked);
 }
+
+// ---------------------------------------------------------------------------
+// AI #5 & #6 — outreach message and chat prep
+
+export type PersonForChat = {
+  full_name: string;
+  major?: string | null;
+  class_year?: number | null;
+  grad_year?: number | null;
+  goal?: string | null;
+  job_title?: string | null;
+  company?: string | null;
+  bio?: string | null;
+  hometown?: string | null;
+  clubs?: string[];
+  skills?: string[];
+  background_tags?: string[];
+  path_tags?: string[];
+  ask_me_about?: string[];
+  path_story?: { year: number; title: string }[];
+};
+
+const CHAT_TYPES: Record<string, string> = {
+  coffee_chat: "a 15–20 minute coffee chat",
+  mock_interview: "a mock interview",
+  resume_review: "a resume review",
+  quick_question: "a quick question (no meeting needed)",
+};
+
+function describe(p: PersonForChat, kind: "student" | "alum") {
+  const lines = [
+    `Name: ${p.full_name}`,
+    kind === "student"
+      ? `Sac State ${p.major ?? ""} student, class of ${p.class_year ?? "?"} · Goal: ${p.goal ?? "—"}`
+      : `Sac State ${p.major ?? ""} ${p.grad_year ?? ""} · Now: ${[p.job_title, p.company].filter(Boolean).join(" @ ")}`,
+    p.hometown && `Hometown: ${p.hometown}`,
+    p.clubs?.length && `Clubs: ${p.clubs.join(", ")}`,
+    p.background_tags?.length && `Background: ${p.background_tags.join(", ")}`,
+    p.path_tags?.length && `Journey: ${p.path_tags.join(", ")}`,
+    p.skills?.length && `Skills: ${p.skills.join(", ")}`,
+    p.path_story?.length && `Path Story: ${p.path_story.map((s) => `${s.year} ${s.title}`).join(" → ")}`,
+    p.ask_me_about?.length && `Ask me about: ${p.ask_me_about.join("; ")}`,
+    p.bio && `Bio: ${p.bio}`,
+  ];
+  return lines.filter(Boolean).join("\n");
+}
+
+export function draftOutreach(student: PersonForChat, alum: PersonForChat, type: string) {
+  return generateJSON(
+    `Write the short note a Sac State student sends an alum when requesting ${CHAT_TYPES[type] ?? "a chat"} on Hive Network.
+
+STUDENT
+${describe(student, "student")}
+
+ALUM
+${describe(alum, "alum")}
+
+RULES
+- 60–100 words, first person as the student, start with "Hi ${alum.full_name.split(" ")[0]} —".
+- Reference ONE specific step of the alum's Path Story and, if there is one, a real thing they share (hometown, club, transfer, first-gen).
+- Say clearly what the student hopes to get from this ${type.replace("_", " ")}.
+- NEVER ask for a referral or a job. No flattery, no "I hope this finds you well".
+
+Return JSON: { "message": string }`,
+    z.object({ message: z.string().min(20) }),
+  );
+}
+
+const PrepSchema = z.object({
+  intro_30s: z.string(),
+  questions: z.array(z.string()).transform((q) => q.slice(0, 5)),
+  research_first: z.array(z.string()).transform((r) => r.slice(0, 4)),
+});
+export type ChatPrep = z.infer<typeof PrepSchema>;
+
+export function chatPrep(student: PersonForChat, alum: PersonForChat, type: string) {
+  return generateJSON(
+    `Prepare a Sac State student for ${CHAT_TYPES[type] ?? "a chat"} with an alum.
+
+STUDENT
+${describe(student, "student")}
+
+ALUM
+${describe(alum, "alum")}
+
+Return JSON:
+{
+  "intro_30s": string,          // what the student says in their first 30 seconds, first person, ~60 words, mentions their goal
+  "questions": string[],        // exactly 5 thoughtful questions tailored to THIS alum's Path Story and the student's goal${type === "mock_interview" ? " (include 2 asking for interview feedback)" : ""}
+  "research_first": string[]    // 3–4 short things to look up before the chat (the alum's company/agency, a role, a skill)
+}`,
+    PrepSchema,
+  );
+}
