@@ -1,5 +1,6 @@
 "use client";
 
+import { safe } from "@/lib/safe";
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { InlineWidget, useCalendlyEventListener } from "react-calendly";
@@ -50,7 +51,7 @@ export function BookingFlow({ alum, student, initialType, existing }: { alum: Al
     draftedFor.current = forType;
     setDrafting(true);
     setDraftError(null);
-    const res = await draftOutreachAction(alum.id, forType);
+    const res = await safe(draftOutreachAction(alum.id, forType));
     if (res.ok) setMessage(res.message);
     else setDraftError(res.error);
     setDrafting(false);
@@ -66,8 +67,8 @@ export function BookingFlow({ alum, student, initialType, existing }: { alum: Al
     setError(null);
     startTransition(async () => {
       const res = canSchedule
-        ? await startBookingAction({ alumniId: alum.id, type: type as "coffee_chat", message, shareResume })
-        : await sendMessageInsteadAction(alum.id, message, shareResume);
+        ? await safe(startBookingAction({ alumniId: alum.id, type: type as "coffee_chat", message, shareResume }))
+        : await safe(sendMessageInsteadAction(alum.id, message, shareResume));
       if (!res.ok) return setError(res.error);
       setRequestId(res.requestId);
       setStage(canSchedule ? "calendar" : "sent");
@@ -79,7 +80,7 @@ export function BookingFlow({ alum, student, initialType, existing }: { alum: Al
     onEventScheduled: async (e) => {
       if (!requestId) return;
       setStage("booked");
-      const res = await markScheduledAction(requestId, e.data.payload.event.uri, e.data.payload.invitee.uri);
+      const res = await safe(markScheduledAction(requestId, e.data.payload.event.uri, e.data.payload.invitee.uri));
       if (!res.ok) setError(`Booked in Calendly, but we couldn't update your chat: ${res.error}`);
       window.scrollTo({ top: 0, behavior: "smooth" });
     },

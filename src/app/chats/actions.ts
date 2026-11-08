@@ -48,6 +48,7 @@ export async function requestReferralAction(alumniId: string, message: string): 
   const text = message.trim();
   if (!Uuid.safeParse(alumniId).success) return { ok: false, error: "Invalid alum." };
   if (text.length < 20 || text.length > 1500) return { ok: false, error: "Add a short note (which role, and a link if you have one)." };
+  if (/\[(role|company|job link)\]/i.test(text)) return { ok: false, error: "Fill in the [role], [company], and [job link] parts so it's easy to say yes." };
   try {
     const { supabase, user } = await me();
     const { data: open } = await supabase

@@ -35,8 +35,8 @@ const StudentInput = AboutMe.extend({
   major: text(80).min(1, "Add your major"),
   class_year: year,
   goal: text(300).min(1, "Tell us your career goal"),
-  goal_field: z.enum(FIELDS),
-  background_tags: z.array(z.enum(BACKGROUND_TAGS)),
+  goal_field: z.enum(FIELDS, { error: "Pick your target field." }),
+  background_tags: z.array(z.enum(BACKGROUND_TAGS, { error: "Pick background options from the list." })),
   skills: list(20),
 });
 export type StudentInput = z.infer<typeof StudentInput>;
@@ -47,13 +47,13 @@ const AlumniInput = AboutMe.extend({
   job_title: text(100).min(1, "Add your current role"),
   company: text(100),
   path_story: z
-    .array(z.object({ year: z.coerce.number().int().min(1950).max(2035), title: text(140).min(1), kind: z.enum(PATH_KINDS) }))
+    .array(z.object({ year: z.coerce.number().int().min(1950).max(2035), title: text(140).min(1, "Each Path Story step needs a description."), kind: z.enum(PATH_KINDS, { error: "Pick a type for each Path Story step." }) }))
     .max(10),
-  path_tags: z.array(z.enum(PATH_TAGS)),
-  fields: z.array(z.enum(FIELDS)).min(1, "Pick at least one field"),
+  path_tags: z.array(z.enum(PATH_TAGS, { error: "Pick journey tags from the list." })),
+  fields: z.array(z.enum(FIELDS, { error: "Pick fields from the list." })).min(1, "Pick at least one field you work in."),
   ask_me_about: list(3),
-  help_types: z.array(z.enum(HELP_TYPE_KEYS)).min(1, "Pick at least one way to help"),
-  monthly_limit: z.coerce.number().int().min(1).max(20),
+  help_types: z.array(z.enum(HELP_TYPE_KEYS, { error: "Pick help types from the list." })).min(1, "Pick at least one way you can help."),
+  monthly_limit: z.coerce.number({ error: "Chats per month must be a number." }).int().min(1, "Allow at least 1 chat per month.").max(20, "Keep it to 20 chats per month or fewer."),
   calendly_url: z
     .string()
     .trim()

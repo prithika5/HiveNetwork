@@ -1,5 +1,6 @@
 "use client";
 
+import { safe } from "@/lib/safe";
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
@@ -29,7 +30,7 @@ export function LaunchPlan({ plan, compact = false }: { plan: PlanView | null; c
     setBusy(kind);
     setError(null);
     start(async () => {
-      const res = await fn();
+      const res = await safe(fn());
       if (!res.ok) setError(res.error ?? "Something went wrong.");
       router.refresh();
       setBusy(null);

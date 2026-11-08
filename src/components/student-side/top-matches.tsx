@@ -1,5 +1,6 @@
 "use client";
 
+import { safe } from "@/lib/safe";
 import Link from "next/link";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { notAFitAction, refreshMatchesAction } from "@/app/alumni/actions";
@@ -40,7 +41,7 @@ export function TopMatches({ initial }: { initial: MatchesState }) {
     setBusy(kind);
     setError(null);
     startTransition(async () => {
-      const res = await action();
+      const res = await safe(action());
       if (res.ok) setMatches(res.matches);
       else setError(res.error);
       setBusy(null);

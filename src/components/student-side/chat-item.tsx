@@ -1,5 +1,6 @@
 "use client";
 
+import { safe } from "@/lib/safe";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { cancelRequestAction, requestReferralAction, sendKudosAction } from "@/app/chats/actions";
@@ -52,7 +53,7 @@ export function ChatItem({ chat }: { chat: StudentChat }) {
   function run(fn: () => Promise<{ ok: boolean; error?: string }>, onOk: () => void) {
     setError(null);
     start(async () => {
-      const res = await fn();
+      const res = await safe(fn());
       if (res.ok) onOk();
       else setError(res.error ?? "Something went wrong.");
     });
@@ -147,7 +148,8 @@ export function ChatItem({ chat }: { chat: StudentChat }) {
         <div className="mt-4 rounded-xl border-2 border-hive-gold p-4">
           <p className="mb-2 text-sm font-semibold">Your referral request — be specific so it&apos;s easy for {first} to say yes</p>
           <Textarea value={refNote} onChange={(e) => setRefNote(e.target.value)} rows={4} className="text-base" />
-          <Button className="mt-3 h-10 px-5" disabled={pending} onClick={() => run(() => requestReferralAction(chat.alum.id, refNote), () => { setReferral("pending"); setRefOpen(false); })}>
+          {/\[(role|company|job link)\]/i.test(refNote) && <p className="mt-2 text-xs text-hive-green">✏️ Replace the [brackets] with the real role, company, and link.</p>}
+          <Button className="mt-3 h-10 px-5" disabled={pending || /\[(role|company|job link)\]/i.test(refNote)} onClick={() => run(() => requestReferralAction(chat.alum.id, refNote), () => { setReferral("pending"); setRefOpen(false); })}>
             {pending ? "Sending…" : `Send to ${first}`}
           </Button>
         </div>

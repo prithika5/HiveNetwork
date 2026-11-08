@@ -1,5 +1,6 @@
 "use client";
 
+import { safe } from "@/lib/safe";
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { saveStudentProfile, uploadResume } from "@/app/onboarding/actions";
@@ -30,13 +31,13 @@ export function StudentForm({ profile, mode, next }: { profile: OwnProfile; mode
     fd.set("resume", file);
     setResumeMsg(null);
     startUpload(async () => {
-      const res = await uploadResume(fd);
+      const res = await safe(uploadResume(fd));
       if (!res.ok) return setResumeMsg({ tone: "err", text: res.error });
       setHasResume(true);
       if (res.skills.length) {
         const merged = [...new Set([...splitList(skills), ...res.skills])];
         setSkills(merged.join(", "));
-        setResumeMsg({ tone: "ok", text: `✨ Found ${res.skills.length} skills${res.summary ? ` — “${res.summary}”` : ""}. Edit them below.` });
+        setResumeMsg({ tone: "ok", text: `✨ Found ${res.skills.length} skills${res.summary ? ` — “${res.summary.replace(/[.!\s]+$/, "")}”` : ""}. Edit them below.` });
       } else {
         setResumeMsg({ tone: "warn", text: res.aiError ?? "Resume saved." });
       }
@@ -47,7 +48,7 @@ export function StudentForm({ profile, mode, next }: { profile: OwnProfile; mode
     e.preventDefault();
     setError(null);
     startSave(async () => {
-      const res = await saveStudentProfile({
+      const res = await safe(saveStudentProfile({
         ...aboutToInput(about),
         major,
         class_year: classYear ? Number(classYear) : null,
@@ -55,7 +56,7 @@ export function StudentForm({ profile, mode, next }: { profile: OwnProfile; mode
         goal_field: goalField as (typeof FIELDS)[number],
         background_tags: background as (typeof BACKGROUND_TAGS)[number][],
         skills: splitList(skills),
-      });
+      }));
       if (!res.ok) return setError(res.error);
       router.push(mode === "onboarding" ? (next ?? "/alumni") : "/profile?saved=1");
       router.refresh();

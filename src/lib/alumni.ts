@@ -39,13 +39,17 @@ export async function getDirectory(): Promise<Directory> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+  // Mirrors public.is_sac_state_member() — an unverified alum can read their OWN row, so
+  // "can I read any alumni profile?" is not the right test.
   let unlocked = false;
   const extra = new Map<string, { full_name: string; ask_me_about: string[] }>();
   if (user) {
-    const { data: full } = await supabase.from("profiles").select("id, full_name, ask_me_about").eq("role", "alumni");
-    if (full && full.length > 0) {
-      unlocked = true;
-      for (const p of full) extra.set(p.id, { full_name: p.full_name ?? "", ask_me_about: p.ask_me_about ?? [] });
+    const { data: me } = await supabase.from("profiles").select("role, verified").eq("id", user.id).maybeSingle();
+    unlocked =
+      (me?.role === "student" && /@csus\.edu$/i.test(user.email ?? "")) || (me?.role === "alumni" && !!me.verified) || me?.role === "admin";
+    if (unlocked) {
+      const { data: full } = await supabase.from("profiles").select("id, full_name, ask_me_about").eq("role", "alumni");
+      for (const p of full ?? []) extra.set(p.id, { full_name: p.full_name ?? "", ask_me_about: p.ask_me_about ?? [] });
     }
   }
   return {

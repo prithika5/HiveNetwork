@@ -7,6 +7,8 @@ import { getOwnProfile } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
 import { HexAvatar } from "@/components/hex-avatar";
 import { BookingFlow } from "@/components/student-side/booking-flow";
+import { ChatPrepCard } from "@/components/student-side/chat-prep";
+import type { ChatPrep } from "@/lib/ai/student";
 import { buttonVariants } from "@/components/ui/button";
 
 async function Booking({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ type?: string }> }) {
@@ -33,7 +35,7 @@ async function Booking({ params, searchParams }: { params: Promise<{ id: string 
     getOwnProfile(),
     supabase
       .from("requests")
-      .select("id, type, status, message")
+      .select("id, type, status, message, ai_prep")
       .eq("student_id", user.id)
       .eq("alumni_id", id)
       .neq("type", "referral")
@@ -58,13 +60,16 @@ async function Booking({ params, searchParams }: { params: Promise<{ id: string 
       </div>
 
       {open?.status === "scheduled" ? (
-        <div className="rounded-2xl border bg-white p-8 text-center shadow-sm">
-          <p className="text-3xl">✅</p>
-          <h2 className="mt-2 text-xl font-bold text-hive-green">You already have a chat booked with {first}</h2>
-          <p className="mt-1 text-muted-foreground">Prep, time changes, and follow-ups live in My chats.</p>
-          <Link href="/chats" className={buttonVariants({ className: "mt-5 h-11 px-6 text-base" })}>
-            Go to My chats →
-          </Link>
+        <div className="space-y-6">
+          <div className="rounded-2xl border bg-white p-8 text-center shadow-sm">
+            <p className="text-3xl">✅</p>
+            <h2 className="mt-2 text-xl font-bold text-hive-green">You&apos;re booked with {first}</h2>
+            <p className="mt-1 text-muted-foreground">Check your email for the calendar invite. Your prep is below — and always in My chats.</p>
+            <Link href="/chats" className={buttonVariants({ className: "mt-5 h-11 px-6 text-base" })}>
+              Go to My chats →
+            </Link>
+          </div>
+          <ChatPrepCard requestId={open.id} initial={(open.ai_prep as ChatPrep | null) ?? null} alumFirstName={first} />
         </div>
       ) : (
         <BookingFlow

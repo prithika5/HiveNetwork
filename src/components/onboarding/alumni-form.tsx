@@ -1,5 +1,6 @@
 "use client";
 
+import { safe } from "@/lib/safe";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { draftAlumniProfile, saveAlumniProfile } from "@/app/onboarding/actions";
@@ -39,7 +40,7 @@ export function AlumniForm({ profile, mode }: { profile: OwnProfile; mode: "onbo
   function onDraft() {
     setDraftMsg(null);
     startDraft(async () => {
-      const res = await draftAlumniProfile(source);
+      const res = await safe(draftAlumniProfile(source));
       if (!res.ok) return setDraftMsg({ ok: false, text: res.error });
       const d = res.draft;
       if (d.job_title) setJobTitle(d.job_title);
@@ -62,7 +63,7 @@ export function AlumniForm({ profile, mode }: { profile: OwnProfile; mode: "onbo
     e.preventDefault();
     setError(null);
     startSave(async () => {
-      const res = await saveAlumniProfile({
+      const res = await safe(saveAlumniProfile({
         ...aboutToInput(about),
         major,
         grad_year: gradYear ? Number(gradYear) : null,
@@ -78,7 +79,7 @@ export function AlumniForm({ profile, mode }: { profile: OwnProfile; mode: "onbo
         monthly_limit: Number(limit) || 2,
         calendly_url: calendly,
         linkedin_url: linkedin,
-      });
+      }));
       if (!res.ok) return setError(res.error);
       router.push(mode === "onboarding" ? `/alumni/${profile.id}` : "/profile?saved=1");
       router.refresh();

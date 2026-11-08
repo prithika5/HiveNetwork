@@ -1,7 +1,6 @@
 "use server";
 
 import { z } from "zod";
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { chatPrep, draftOutreach, type ChatPrep } from "@/lib/ai/student";
 import { loadChatPeople } from "@/lib/requests";
@@ -74,7 +73,7 @@ export async function startBookingAction(input: z.infer<typeof StartInput>): Pro
       .select("id")
       .single();
     if (error) return { ok: false, error: error.message }; // DB guardrail messages are human-readable
-    revalidatePath("/chats");
+    // No revalidatePath here: it would re-render this page from the server mid-flow. /chats is dynamic anyway.
     return { ok: true, requestId: data.id };
   } catch (e) {
     return { ok: false, error: (e as Error).message };
@@ -96,7 +95,7 @@ export async function markScheduledAction(requestId: string, eventUri: string, i
     .eq("student_id", user.id)
     .eq("status", "pending");
   if (error) return { ok: false, error: error.message };
-  revalidatePath("/chats");
+  // No revalidatePath: re-rendering the booking page would replace the "You're booked!" + prep view.
   return { ok: true };
 }
 

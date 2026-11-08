@@ -1,5 +1,6 @@
 "use client";
 
+import { safe } from "@/lib/safe";
 import { useEffect, useState } from "react";
 import { chatPrepAction } from "@/app/alumni/[id]/book/actions";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ export function ChatPrepCard({ requestId, initial, alumFirstName }: { requestId:
   async function load() {
     setLoading(true);
     setError(null);
-    const res = await chatPrepAction(requestId);
+    const res = await safe(chatPrepAction(requestId));
     if (res.ok) setPrep(res.prep);
     else setError(res.error);
     setLoading(false);
@@ -23,7 +24,7 @@ export function ChatPrepCard({ requestId, initial, alumFirstName }: { requestId:
   useEffect(() => {
     if (initial) return;
     let cancelled = false;
-    chatPrepAction(requestId).then((res) => {
+    safe(chatPrepAction(requestId)).then((res) => {
       if (cancelled) return;
       if (res.ok) setPrep(res.prep);
       else setError(res.error);

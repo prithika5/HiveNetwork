@@ -90,8 +90,6 @@ export function LoginForm() {
               autoComplete="email"
               required
               placeholder={role === "student" ? "you@csus.edu" : "you@example.com"}
-              pattern={role === "student" ? ".+@[cC][sS][uU][sS]\\.[eE][dD][uU]" : undefined}
-              title={role === "student" ? "Use your @csus.edu email" : undefined}
               className="h-11 text-base"
             />
           </div>

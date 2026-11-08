@@ -1,5 +1,6 @@
 "use client";
 
+import { safe } from "@/lib/safe";
 import { useState, useTransition } from "react";
 import { setVerifiedAction } from "@/app/admin/actions";
 import { Button } from "@/components/ui/button";
@@ -16,7 +17,7 @@ export function VerifyButton({ id, verified }: { id: string; verified: boolean }
         disabled={pending}
         onClick={() =>
           start(async () => {
-            const res = await setVerifiedAction(id, !v);
+            const res = await safe(setVerifiedAction(id, !v));
             if (res.ok) setV(!v);
             else setError(res.error ?? "Failed");
           })

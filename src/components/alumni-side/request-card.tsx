@@ -1,5 +1,6 @@
 "use client";
 
+import { safe } from "@/lib/safe";
 import { useEffect, useState, useTransition } from "react";
 import { declineAction, markCompletedAction, resumeUrlAction, setOpenToReferAction, snapshotAction } from "@/app/inbox/actions";
 import { HexAvatar } from "@/components/hex-avatar";
@@ -45,7 +46,7 @@ export function RequestCard({ req }: { req: InboxRequest }) {
   useEffect(() => {
     if (req.ai_snapshot) return;
     let cancelled = false;
-    snapshotAction(req.id).then((res) => {
+    safe(snapshotAction(req.id)).then((res) => {
       if (cancelled) return;
       if (res.ok) setSnapshot(res.snapshot);
       else setSnapError(res.error);
@@ -59,7 +60,7 @@ export function RequestCard({ req }: { req: InboxRequest }) {
   function retrySnapshot() {
     setSnapLoading(true);
     setSnapError(null);
-    snapshotAction(req.id).then((res) => {
+    safe(snapshotAction(req.id)).then((res) => {
       if (res.ok) setSnapshot(res.snapshot);
       else setSnapError(res.error);
       setSnapLoading(false);
@@ -68,7 +69,7 @@ export function RequestCard({ req }: { req: InboxRequest }) {
 
   async function openResume() {
     const win = window.open("", "_blank"); // open synchronously so popup blockers allow it
-    const res = await resumeUrlAction(req.id);
+    const res = await safe(resumeUrlAction(req.id));
     if (res.ok && win) win.location.href = res.url;
     else {
       win?.close();
@@ -79,7 +80,7 @@ export function RequestCard({ req }: { req: InboxRequest }) {
   function act(fn: () => Promise<{ ok: boolean; error?: string }>, onOk: () => void) {
     setError(null);
     start(async () => {
-      const res = await fn();
+      const res = await safe(fn());
       if (res.ok) onOk();
       else setError(res.error ?? "Something went wrong.");
     });
