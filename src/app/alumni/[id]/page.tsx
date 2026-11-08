@@ -1,37 +1,38 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
+import { BadgeCheck, BookOpen, ChevronLeft, ChevronRight, ExternalLink, GraduationCap, Languages, Lock, MapPin, Smile, Star, Users } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { alumniExists, getAlumniProfile, getKudos, getMatchFor } from "@/lib/alumni";
 import { getCurrentUser } from "@/lib/auth";
 import { HELP_TYPES, JOURNEY } from "@/lib/labels";
-import { HexAvatar } from "@/components/hex-avatar";
+import { Avatar } from "@/components/hex-avatar";
 import { SampleBadge } from "@/components/sample-badge";
 import { CompanyLogo } from "@/components/company-logo";
 import { PathStory } from "@/components/student-side/path-story";
 import { buttonVariants } from "@/components/ui/button";
 
-function Section({ title, children, className = "" }: { title: string; children: React.ReactNode; className?: string }) {
+function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className={`rounded-2xl border bg-white p-6 shadow-sm sm:p-7 ${className}`}>
-      <h2 className="mb-4 text-xl font-bold text-hive-green">{title}</h2>
+    <section className="rounded-2xl border border-line bg-white p-6 sm:p-8">
+      <h2 className="mb-5 text-lg font-semibold tracking-tight text-ink">{title}</h2>
       {children}
     </section>
   );
 }
 
-function Fact({ icon, label, children }: { icon: string; label: string; children: React.ReactNode }) {
+function Row({ icon: Icon, label, children }: { icon: LucideIcon; label: string; children: React.ReactNode }) {
   return (
-    <div className="flex gap-3">
-      <span className="text-xl" aria-hidden>
-        {icon}
-      </span>
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{label}</p>
-        <p className="text-base">{children}</p>
-      </div>
+    <div className="flex gap-3 text-[15px]">
+      <Icon className="mt-0.5 size-[18px] shrink-0 text-stone" strokeWidth={1.6} aria-label={label} />
+      <p className="text-ink" title={label}>
+        {children}
+      </p>
     </div>
   );
 }
+
+const chip = "rounded-full bg-stone-100 px-2.5 py-1 text-xs text-ink";
 
 async function Profile({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -41,14 +42,11 @@ async function Profile({ params }: { params: Promise<{ id: string }> }) {
     // Logged in but RLS hid it: either an unverified alum viewing, or the alum doesn't exist.
     if (user && (await alumniExists(id))) {
       return (
-        <div className="mx-auto max-w-lg px-4 py-24 text-center">
-          <div className="hex mx-auto mb-4 flex h-16 w-16 items-center justify-center bg-hive-gold-light text-3xl">🔒</div>
-          <h1 className="text-2xl font-bold text-hive-green">Full profiles unlock after verification</h1>
-          <p className="mt-2 text-muted-foreground">
-            Full alumni profiles are open to Sac State students and verified alumni. Your account is pending — our team will verify you soon.
-          </p>
-          <Link href="/alumni" className={buttonVariants({ variant: "outline", className: "mt-6 h-10 px-4" })}>
-            ← Back to all alumni
+        <div className="mx-auto max-w-md px-5 py-28 text-center">
+          <Lock className="mx-auto size-7 text-ink" strokeWidth={1.6} />
+          <h1 className="mt-4 text-2xl font-semibold tracking-tight text-ink">Unlocks once you&apos;re verified</h1>
+          <Link href="/alumni" className={buttonVariants({ variant: "outline", className: "mt-6 h-10 rounded-full bg-white px-5" })}>
+            Back to alumni
           </Link>
         </div>
       );
@@ -57,172 +55,123 @@ async function Profile({ params }: { params: Promise<{ id: string }> }) {
   }
 
   const [kudos, match] = await Promise.all([getKudos(alum.id), user?.role === "student" ? getMatchFor(alum.id) : null]);
-  const first = alum.full_name.split(" ")[0];
   const isStudent = user?.role === "student";
-  const bookable = alum.help_types.filter((h) => h !== "referral");
+  const tags = [...alum.fields, ...alum.path_tags.map((t) => JOURNEY[t]?.label ?? t)];
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
-      <Link href="/alumni" className="text-sm font-medium text-muted-foreground hover:text-hive-green">
-        ← All alumni
+    <div className="mx-auto max-w-3xl px-5 py-10">
+      <Link href="/alumni" className="inline-flex items-center gap-1 text-sm text-stone hover:text-ink">
+        <ChevronLeft className="size-4" strokeWidth={1.8} />
+        Alumni
       </Link>
 
-      {/* Header */}
-      <header className="mt-4 overflow-hidden rounded-2xl border bg-white shadow-sm">
-        <div className="h-20 bg-hive-green sm:h-24" />
-        <div className="flex flex-col gap-5 px-6 pb-6 sm:flex-row sm:items-end sm:px-8">
-          <HexAvatar src={alum.photo_url} name={alum.full_name} size={112} className="-mt-14 sm:-mt-16" />
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-3xl font-bold tracking-tight text-hive-green">{alum.full_name}</h1>
-              {alum.verified && (
-                <span className="rounded-full bg-hive-green px-2.5 py-1 text-xs font-semibold text-white">Verified Hornet Alum ✓</span>
-              )}
-              {alum.is_sample && <SampleBadge />}
-            </div>
-            <p className="mt-1 flex flex-wrap items-center gap-2 text-lg font-medium">
-              {alum.job_title}
-              {alum.company && (
-                <span className="flex items-center gap-2 text-muted-foreground">
-                  @ <CompanyLogo domain={alum.company_domain} name={alum.company} size={22} /> {alum.company}
-                </span>
-              )}
-            </p>
-            <p className="text-muted-foreground">
-              Sac State {alum.grad_year} · {alum.major}
-              {alum.linkedin_url && (
-                <>
-                  {" · "}
-                  <a href={alum.linkedin_url} target="_blank" rel="noopener noreferrer" className="font-medium text-[#0A66C2] hover:underline">
-                    LinkedIn ↗
-                  </a>
-                </>
-              )}
-            </p>
-            {alum.path_tags.length > 0 && (
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {alum.path_tags.map((t) => (
-                  <span key={t} className="rounded-full bg-hive-gold-light px-2.5 py-1 text-xs font-medium text-hive-green">
-                    {JOURNEY[t]?.icon} {JOURNEY[t]?.label ?? t}
-                  </span>
-                ))}
-              </div>
+      <header className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-start">
+        <Avatar src={alum.photo_url} name={alum.full_name} size={112} />
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <h1 className="text-3xl font-semibold tracking-tight text-ink sm:text-4xl">{alum.full_name}</h1>
+            {alum.verified && <BadgeCheck className="size-5 text-honey" strokeWidth={1.8} aria-label="Verified Hornet Alum" />}
+            {alum.is_sample && <SampleBadge />}
+          </div>
+          <p className="mt-1.5 text-[15px] text-stone">{alum.job_title}</p>
+          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-ink">
+            {alum.company && (
+              <span className="flex items-center gap-2">
+                <CompanyLogo domain={alum.company_domain} name={alum.company} size={20} />
+                {alum.company}
+              </span>
+            )}
+            <span className="flex items-center gap-2 text-stone">
+              <GraduationCap className="size-[18px]" strokeWidth={1.6} />
+              Sac State {alum.grad_year}
+            </span>
+            {alum.linkedin_url && (
+              <a href={alum.linkedin_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-stone hover:text-ink">
+                LinkedIn <ExternalLink className="size-3.5" strokeWidth={1.8} />
+              </a>
             )}
           </div>
-          {isStudent && (
-            <Link href={`/alumni/${alum.id}/book`} className={buttonVariants({ className: "h-12 px-6 text-base" })}>
-              📅 Book a 1:1
-            </Link>
+          {tags.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-1.5">
+              {tags.map((t) => (
+                <span key={t} className={chip}>
+                  {t}
+                </span>
+              ))}
+            </div>
           )}
         </div>
+        {isStudent && (
+          <Link href={`/alumni/${alum.id}/book`} className={buttonVariants({ className: "h-11 shrink-0 rounded-full px-6 text-[15px]" })}>
+            Book a chat
+          </Link>
+        )}
       </header>
 
       {match && (
-        <div className="mt-6 rounded-2xl border border-hive-gold bg-hive-gold-light p-5">
-          <p className="font-semibold text-hive-green">
-            ✨ Why you match <span className="ml-1 rounded-full bg-hive-green px-2 py-0.5 text-xs text-white">{match.score}% match</span>
-          </p>
-          <p className="mt-1 text-hive-green">{match.reasons.join(" · ")}</p>
+        <div className="mt-8 rounded-2xl border border-honey/40 bg-honey-soft/50 px-5 py-4 text-sm text-ink">
+          <span className="font-medium">✨ {match.score}% match</span>
+          <span className="text-stone"> · {match.reasons.join(" · ")}</span>
         </div>
       )}
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_22rem]">
-        <div className="space-y-6">
-          <Section title={`About ${first}`}>
-            {alum.bio && <p className="text-lg leading-relaxed text-foreground/90">“{alum.bio}”</p>}
-            <div className="mt-6 grid gap-5 sm:grid-cols-2">
-              {alum.hometown && <Fact icon="📍" label="Hometown">{alum.hometown}</Fact>}
-              {alum.languages.length > 0 && <Fact icon="🗣" label="Languages">{alum.languages.join(", ")}</Fact>}
-              {alum.clubs.length > 0 && <Fact icon="🐝" label="Clubs at Sac State">{alum.clubs.join(", ")}</Fact>}
-              {alum.favorite_spot && <Fact icon="📚" label="Favorite Sac State spot">{alum.favorite_spot}</Fact>}
-              {alum.hobbies.length > 0 && <Fact icon="🎯" label="Hobbies">{alum.hobbies.join(", ")}</Fact>}
-            </div>
-            {alum.fun_facts.length > 0 && (
-              <div className="mt-6">
-                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">⭐ Fun facts</p>
-                <ul className="flex flex-wrap gap-2">
-                  {alum.fun_facts.map((f) => (
-                    <li key={f} className="rounded-xl bg-secondary px-3 py-2 text-sm">
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </Section>
-
-          <Section title="⬡ Path Story">
-            <p className="-mt-2 mb-6 text-sm text-muted-foreground">How {first} got from Sac State to where they are now.</p>
-            <PathStory steps={alum.path_story} />
-          </Section>
-
-          {kudos.length > 0 && (
-            <Section title={`💛 Kudos from students (${kudos.length})`}>
-              <ul className="grid gap-3 sm:grid-cols-2">
-                {kudos.map((k) => (
-                  <li key={k.id} className="rounded-xl bg-secondary p-4">
-                    <p className="text-sm leading-relaxed">“{k.note}”</p>
-                    <p className="mt-2 text-xs text-muted-foreground">— a Sac State student</p>
-                  </li>
-                ))}
-              </ul>
-            </Section>
-          )}
-        </div>
-
-        <aside className="space-y-6">
+      <div className="mt-8 space-y-5">
+        <Section title="About">
+          {alum.bio && <p className="mb-6 text-[15px] leading-relaxed text-ink">{alum.bio}</p>}
+          <div className="space-y-3">
+            {alum.hometown && <Row icon={MapPin} label="Hometown">{alum.hometown}</Row>}
+            {alum.clubs.length > 0 && <Row icon={Users} label="Clubs at Sac State">{alum.clubs.join(", ")}</Row>}
+            {alum.fun_facts.length > 0 && <Row icon={Star} label="Fun facts">{alum.fun_facts.join(" · ")}</Row>}
+            {alum.languages.length > 0 && <Row icon={Languages} label="Languages">{alum.languages.join(", ")}</Row>}
+            {alum.hobbies.length > 0 && <Row icon={Smile} label="Hobbies">{alum.hobbies.join(", ")}</Row>}
+            {alum.favorite_spot && <Row icon={BookOpen} label="Favorite Sac State spot">{alum.favorite_spot}</Row>}
+          </div>
           {alum.ask_me_about.length > 0 && (
-            <Section title="Ask me about">
-              <ul className="space-y-2">
-                {alum.ask_me_about.map((a) => (
-                  <li key={a} className="flex gap-2">
-                    <span className="text-hive-gold">⬢</span>
-                    <span>{a}</span>
-                  </li>
-                ))}
-              </ul>
-            </Section>
+            <div className="mt-6 flex flex-wrap gap-1.5 border-t border-line pt-5">
+              {alum.ask_me_about.map((a) => (
+                <span key={a} className={chip}>
+                  {a}
+                </span>
+              ))}
+            </div>
           )}
+        </Section>
 
-          <Section title="How I can help">
-            <ul className="space-y-2">
-              {alum.help_types.map((h) => (
-                <li key={h}>
-                  {isStudent && h !== "referral" ? (
-                    <Link
-                      href={`/alumni/${alum.id}/book?type=${h}`}
-                      className="flex items-center justify-between rounded-xl border px-4 py-3 font-medium transition-colors hover:border-hive-green hover:bg-secondary"
-                    >
-                      {HELP_TYPES[h]} <span className="text-hive-green">Book →</span>
-                    </Link>
-                  ) : (
-                    <div className="rounded-xl border border-dashed px-4 py-3 text-muted-foreground">
-                      {HELP_TYPES[h]}
-                      {h === "referral" && <span className="block text-xs">After a great 1:1 chat</span>}
-                    </div>
-                  )}
+        <Section title="Path">
+          <PathStory steps={alum.path_story} />
+        </Section>
+
+        <Section title="Book">
+          <ul className="divide-y divide-line">
+            {alum.help_types.map((h) => (
+              <li key={h}>
+                {isStudent && h !== "referral" ? (
+                  <Link href={`/alumni/${alum.id}/book?type=${h}`} className="flex items-center justify-between py-3 text-[15px] text-ink hover:text-stone">
+                    {HELP_TYPES[h]}
+                    <ChevronRight className="size-4 text-stone" strokeWidth={1.8} />
+                  </Link>
+                ) : (
+                  <div className="flex items-center justify-between py-3 text-[15px] text-stone">
+                    {HELP_TYPES[h]}
+                    {h === "referral" && <span className="text-xs">After a chat</span>}
+                  </div>
+                )}
+              </li>
+            ))}
+          </ul>
+        </Section>
+
+        {kudos.length > 0 && (
+          <Section title={`Thanks from students · ${kudos.length}`}>
+            <ul className="space-y-4">
+              {kudos.map((k) => (
+                <li key={k.id} className="text-sm leading-relaxed text-stone">
+                  “{k.note}”
                 </li>
               ))}
             </ul>
-            {isStudent && bookable.length > 0 && (
-              <p className="mt-4 text-xs text-muted-foreground">
-                1:1s are 15–20 minutes. {first} takes a limited number of chats each month.
-              </p>
-            )}
           </Section>
-
-          {alum.fields.length > 0 && (
-            <Section title="Fields">
-              <div className="flex flex-wrap gap-2">
-                {alum.fields.map((f) => (
-                  <span key={f} className="rounded-lg border px-3 py-1 text-sm">
-                    {f}
-                  </span>
-                ))}
-              </div>
-            </Section>
-          )}
-        </aside>
+        )}
       </div>
     </div>
   );
@@ -230,12 +179,13 @@ async function Profile({ params }: { params: Promise<{ id: string }> }) {
 
 function ProfileSkeleton() {
   return (
-    <div className="mx-auto max-w-6xl space-y-6 px-4 py-8">
-      <div className="h-48 animate-pulse rounded-2xl bg-secondary" />
-      <div className="grid gap-6 lg:grid-cols-[1fr_22rem]">
-        <div className="h-96 animate-pulse rounded-2xl bg-secondary" />
-        <div className="h-64 animate-pulse rounded-2xl bg-secondary" />
+    <div className="mx-auto max-w-3xl space-y-5 px-5 py-10">
+      <div className="flex items-center gap-6">
+        <div className="size-28 animate-pulse rounded-full bg-stone-100" />
+        <div className="h-20 flex-1 animate-pulse rounded-2xl bg-stone-100" />
       </div>
+      <div className="h-72 animate-pulse rounded-2xl border border-line bg-white" />
+      <div className="h-72 animate-pulse rounded-2xl border border-line bg-white" />
     </div>
   );
 }
