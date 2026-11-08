@@ -16,3 +16,13 @@ export const HELP_TYPES: Record<string, string> = {
 };
 
 export const shortYear = (y?: number | null) => (y ? `'${String(y).slice(-2)}` : "");
+
+export const BACKGROUND_CHIPS: Record<string, string> = { "first-gen": "🐝 First-gen", transfer: "🔁 Transfer", commuter: "🚗 Commuter" };
+
+/** "junior", "senior"… from expected graduation year (academic year rolls over in July). */
+export function classStanding(classYear: number | null | undefined, now = new Date()) {
+  if (!classYear) return "";
+  const seniorsGrad = now.getMonth() >= 6 ? now.getFullYear() + 1 : now.getFullYear();
+  const left = classYear - seniorsGrad;
+  return left <= 0 ? "senior" : left === 1 ? "junior" : left === 2 ? "sophomore" : "freshman";
+}

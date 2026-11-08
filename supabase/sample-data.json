@@ -318,7 +318,7 @@
       "email": "alex.rivera@csus.edu",
       "full_name": "Alex Rivera",
       "major": "Computer Science",
-      "class_year": 2027,
+      "class_year": 2028,
       "goal": "Land a software engineering internship by summer",
       "goal_field": "Software Engineering",
       "bio": "Junior CS major from Stockton and the first in my family to go to college. I transferred from Sac City last year and commute in three days a week. I love building small apps that solve real problems for students.",
@@ -330,14 +330,14 @@
       "favorite_spot": "Library 3rd floor",
       "skills": ["Python", "JavaScript", "React", "SQL", "Git"],
       "background_tags": ["first-gen", "transfer", "commuter"],
-      "resume_text": "ALEX RIVERA\nalex.rivera@csus.edu · Stockton, CA · github.com/sample-alex\n\nEDUCATION\nCalifornia State University, Sacramento — B.S. Computer Science, expected May 2027 · GPA 3.6\nSacramento City College — A.S. Computer Science transfer, 2025\n\nPROJECTS\nHornet Park — React + Firebase app showing open parking spots at Sac State; 300+ weekly users\n  - Built real-time updates with Firestore listeners; cut average search time by 40% in a student survey\nStudy Buddy Finder — Python Flask + PostgreSQL app matching classmates by course and schedule\n  - Designed the database schema and REST API; deployed on Render\n\nEXPERIENCE\nMath Tutor, Sacramento City College Learning Center — 2023–2025\n  - Tutored 15+ students per week in Calculus and Discrete Math\nWarehouse Associate (part-time), Stockton — 2021–2023\n\nSKILLS\nPython, JavaScript, React, SQL, Git, Flask, Firebase\n\nACTIVITIES\nACM at Sac State — project team member"
+      "resume_text": "ALEX RIVERA\nalex.rivera@csus.edu · Stockton, CA · github.com/sample-alex\n\nEDUCATION\nCalifornia State University, Sacramento — B.S. Computer Science, expected May 2028 · GPA 3.6\nSacramento City College — A.S. Computer Science transfer, 2025\n\nPROJECTS\nHornet Park — React + Firebase app showing open parking spots at Sac State; 300+ weekly users\n  - Built real-time updates with Firestore listeners; cut average search time by 40% in a student survey\nStudy Buddy Finder — Python Flask + PostgreSQL app matching classmates by course and schedule\n  - Designed the database schema and REST API; deployed on Render\n\nEXPERIENCE\nMath Tutor, Sacramento City College Learning Center — 2023–2025\n  - Tutored 15+ students per week in Calculus and Discrete Math\nWarehouse Associate (part-time), Stockton — 2021–2023\n\nSKILLS\nPython, JavaScript, React, SQL, Git, Flask, Firebase\n\nACTIVITIES\nACM at Sac State — project team member"
     },
     {
       "key": "priya",
       "email": "priya.shah@csus.edu",
       "full_name": "Priya Shah",
       "major": "Business Administration",
-      "class_year": 2026,
+      "class_year": 2027,
       "goal": "Get a product manager role after graduation",
       "goal_field": "Product",
       "bio": "Senior in Business with a minor in Computer Science. I run events for Women in Business and want to move into product management.",
@@ -349,14 +349,14 @@
       "favorite_spot": "The Arboretum",
       "skills": ["Excel", "SQL", "Figma", "Event planning"],
       "background_tags": [],
-      "resume_text": "PRIYA SHAH — Business Administration (Minor: CS), Sac State, May 2026. VP of Events, Women in Business. Marketing intern, local nonprofit. Skills: Excel, SQL, Figma."
+      "resume_text": "PRIYA SHAH — Business Administration (Minor: CS), Sac State, May 2027. VP of Events, Women in Business. Marketing intern, local nonprofit. Skills: Excel, SQL, Figma."
     },
     {
       "key": "kevin",
       "email": "kevin.tran@csus.edu",
       "full_name": "Kevin Tran",
       "major": "Nursing",
-      "class_year": 2028,
+      "class_year": 2029,
       "goal": "Become an ER nurse in the Sacramento area",
       "goal_field": "Healthcare",
       "bio": "Sophomore nursing student, EMT on weekends, and commuter from Stockton.",
@@ -368,7 +368,7 @@
       "favorite_spot": "The nursing sim lab",
       "skills": ["EMT certification", "CPR/BLS", "Patient care"],
       "background_tags": ["first-gen", "commuter"],
-      "resume_text": "KEVIN TRAN — B.S. Nursing, Sac State, 2028. EMT-B, Delta Ambulance (weekends). Skills: BLS, patient assessment."
+      "resume_text": "KEVIN TRAN — B.S. Nursing, Sac State, 2029. EMT-B, Delta Ambulance (weekends). Skills: BLS, patient assessment."
     }
   ],
   "admins": [

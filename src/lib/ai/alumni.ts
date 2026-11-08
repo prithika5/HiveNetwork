@@ -78,3 +78,45 @@ TEXT:
     AlumniProfileSchema,
   );
 }
+
+// AI #3 ------------------------------------------------------------------
+const SnapshotSchema = z.object({
+  headline: z.string(),
+  summary: z.array(z.string()).transform((s) => s.slice(0, 3)),
+  relevance_to_you: z.string(),
+});
+export type ApplicantSnapshot = z.infer<typeof SnapshotSchema>;
+
+export function applicantSnapshot(input: {
+  student: { full_name: string; major: string | null; class_year: number | null; goal: string | null; skills: string[]; background_tags: string[]; hometown: string | null; clubs: string[]; bio: string | null };
+  resumeText: string | null;
+  alum: { full_name: string; job_title: string | null; company: string | null; path_story: { year: number; title: string }[]; ask_me_about: string[]; hometown: string | null; clubs: string[] };
+  request: { type: string; message: string | null };
+}) {
+  const { student, resumeText, alum, request } = input;
+  return generateJSON(
+    `Give a busy Sac State alum a quick snapshot of the student who requested a ${request.type.replace("_", " ")} with them.
+
+STUDENT
+- ${student.full_name}, ${student.major ?? ""} (class of ${student.class_year ?? "?"})
+- Goal: ${student.goal ?? "—"}
+- Skills: ${student.skills.join(", ") || "—"} · Background: ${student.background_tags.join(", ") || "—"}
+- Hometown: ${student.hometown ?? "—"} · Clubs: ${student.clubs.join(", ") || "—"}
+- Bio: ${student.bio ?? "—"}
+- Their note: ${request.message ?? "—"}
+${resumeText ? `- Resume:\n"""${resumeText.slice(0, 8000)}"""` : "- Resume: not shared"}
+
+ALUM (the reader, "you")
+- ${alum.full_name}, ${[alum.job_title, alum.company].filter(Boolean).join(" @ ")}
+- Path: ${alum.path_story.map((s) => `${s.year} ${s.title}`).join(" → ")}
+- Hometown: ${alum.hometown ?? "—"} · Clubs: ${alum.clubs.join(", ") || "—"} · Ask me about: ${alum.ask_me_about.join("; ")}
+
+Return JSON:
+{
+  "headline": string,          // ≤ 12 words, e.g. "Transfer CS junior building real apps, targeting SWE internships"
+  "summary": string[],         // exactly 3 short lines: strengths/projects, what they want from this chat, one thing to know
+  "relevance_to_you": string   // one sentence, addressed to the alum as "you", on why YOU specifically can help (shared path, hometown, club, skills)
+}`,
+    SnapshotSchema,
+  );
+}
