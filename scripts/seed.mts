@@ -27,7 +27,7 @@ type Person = { key: string; email: string; full_name: string; [k: string]: unkn
 const ids: Record<string, string> = {};
 const DAY = 24 * 60 * 60 * 1000;
 
-function check<T>(label: string, res: { error: { message: string } | null; data?: T }) {
+function check<T>(label: string, res: { error: { message: string } | null; data?: unknown }): T {
   if (res.error) throw new Error(`${label}: ${res.error.message}`);
   return res.data as T;
 }
@@ -99,7 +99,9 @@ async function main() {
   // Alumni ---------------------------------------------------------------
   for (const a of data.alumni as Person[]) {
     const id = await createUser(a, "alumni");
-    const { key: _k, email: _e, ...profile } = a;
+    const profile: Record<string, unknown> = { ...a };
+    delete profile.key;
+    delete profile.email;
     check(
       `profile ${a.full_name}`,
       await db
@@ -119,7 +121,9 @@ async function main() {
   // Students -------------------------------------------------------------
   for (const s of data.students as Person[]) {
     const id = await createUser(s, "student");
-    const { key: _k, email: _e, ...profile } = s;
+    const profile: Record<string, unknown> = { ...s };
+    delete profile.key;
+    delete profile.email;
     let resume_path: string | null = null;
     if (s.resume_text) {
       resume_path = `${id}/resume.pdf`;
