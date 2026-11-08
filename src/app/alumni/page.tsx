@@ -3,12 +3,24 @@ import type { Metadata } from "next";
 import { getDirectory } from "@/lib/alumni";
 import { getCurrentUser } from "@/lib/auth";
 import { AlumniDirectory } from "@/components/student-side/alumni-directory";
+import { TopMatches } from "@/components/student-side/top-matches";
+import { getMatchesState } from "@/lib/matches";
 
 export const metadata: Metadata = { title: "All alumni — Hive Network" };
 
 async function DirectoryLoader() {
   const [{ alumni, unlocked }, user] = await Promise.all([getDirectory(), getCurrentUser()]);
   return <AlumniDirectory alumni={alumni} unlocked={unlocked} loggedIn={!!user} />;
+}
+
+async function MatchesLoader() {
+  const state = await getMatchesState();
+  if (state.status === "not-student") return null;
+  return (
+    <div className="mb-10">
+      <TopMatches initial={state} />
+    </div>
+  );
 }
 
 function DirectorySkeleton() {
@@ -27,7 +39,9 @@ function DirectorySkeleton() {
 export default function AlumniPage() {
   return (
     <div className="mx-auto max-w-6xl px-4 py-10">
-      {/* Step 7: "✨ Your top matches" goes here for logged-in students. */}
+      <Suspense>
+        <MatchesLoader />
+      </Suspense>
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight text-hive-green sm:text-4xl">All alumni</h1>
         <p className="mt-2 text-lg text-muted-foreground">
