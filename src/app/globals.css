@@ -5,6 +5,11 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  --color-honey: var(--honey);
+  --color-honey-soft: var(--honey-soft);
+  --color-ink: var(--ink);
+  --color-stone: var(--stone);
+  --color-line: var(--line);
   --color-hive-green: var(--hive-green);
   --color-hive-gold: var(--hive-gold);
   --color-hive-gold-light: var(--hive-gold-light);
@@ -52,24 +57,24 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: #043927;
-  --primary-foreground: #ffffff;
-  --secondary: #f4f7f5;
-  --secondary-foreground: #043927;
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: #f3efe0;
-  --accent-foreground: #043927;
+  --background: #FAFAF9;
+  --foreground: #1C1917;
+  --card: #FFFFFF;
+  --card-foreground: #1C1917;
+  --popover: #FFFFFF;
+  --popover-foreground: #1C1917;
+  --primary: #292524;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F5F5F4;
+  --secondary-foreground: #1C1917;
+  --muted: #F5F5F4;
+  --muted-foreground: #78716C;
+  --accent: #F5F5F4;
+  --accent-foreground: #1C1917;
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: #C4B581;
+  --border: #E7E5E4;
+  --input: #E7E5E4;
+  --ring: #C8A24A;
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
   --chart-3: oklch(0.439 0 0);
@@ -84,9 +89,14 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
-  --hive-green: #043927;
-  --hive-gold: #C4B581;
-  --hive-gold-light: #f3efe0;
+  --hive-green: #292524;
+  --hive-gold: #C8A24A;
+  --hive-gold-light: #F5F5F4;
+  --honey: #C8A24A;
+  --honey-soft: #F6EFDC;
+  --ink: #1C1917;
+  --stone: #78716C;
+  --line: #E7E5E4;
 }
 
 .dark {
@@ -134,7 +144,7 @@
     @apply font-sans;
   }
 }
-/* Hexagon shape used for avatars, badges and Path Story nodes */
+/* Legacy class from the hexagon theme — now a simple circle. */
 .hex {
-  clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0% 50%);
+  border-radius: 9999px;
 }

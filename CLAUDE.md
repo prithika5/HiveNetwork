@@ -131,7 +131,12 @@ If any step asks for a credit card or a paid upgrade, **stop and use the fallbac
   - Keep `client.ts` provider-agnostic so another model can be swapped in later.
 - **Scheduling**: **Calendly inline embed** via the `react-calendly` package (`InlineWidget` + `useCalendlyEventListener` → `onEventScheduled`). Pre-fill with `prefill={{ name, email, customAnswers: { a1: outreachMessage } }}` and `utm={{ utmContent: requestId }}`. Add URL option `hide_gdpr_banner=1`. Use Calendly's **free plan** (one event type per alum is enough); skip custom embed colors (paid). Only accept `calendly.com` URLs in the alum's `calendly_url` field. Calendly API/webhooks = future (slides only).
 - **Hosting**: Vercel
-- **Visual identity — our own, not a copy of any other site:** a **hive / launch** theme. Sac State **green `#043927`** + **gold `#C4B581`**, hexagon accents (hex-shaped avatars or badges), Path Story drawn as a vertical timeline with hexagon nodes, rocket/launch motif on the Launch Plan. Clean white background, rounded-2xl cards, large readable text. Avoid coffee-cup branding.
+- **Visual identity — minimal & neutral (our own, inspired by clean mentor directories, never copied):**
+  - Palette: page background `#FAFAF9`; cards white with a 1px `#E7E5E4` border; main text `#1C1917`; secondary text `#78716C`. Primary buttons charcoal `#292524` with white text; secondary buttons white with a border. One muted honey accent `#C8A24A`, used sparingly (match badges, hornet icon, tiny highlights). No bright colors, no gradients, no heavy shadows.
+  - Brand: an original minimal line-style hornet icon (SVG) in charcoal with a tiny honey accent, next to "Hive Network" in the nav, as the favicon, and on empty states. Never use Sac State's official logo.
+  - Type & layout: one clean sans-serif (Geist); big simple headings; small gray secondary text; lots of white space; rounded-2xl cards with a soft hover lift; neutral tag chips (light gray background, dark text); lucide icons; loading skeletons; mobile-first.
+  - Copy: at most one short helper sentence per page; buttons are 1–3 words; prefer icons, tooltips and placeholders over explanations.
+  - Directory cards: round photo or soft initials avatar, name, role, company logo (Google favicon service from `company_domain`, gray initial fallback) + company, grad year, max 3 tags, one "View profile" button (🔒 when logged out).
 - Shared UI in `src/components/ui` (shadcn) and `src/components/*`.
 - Every seeded/fake record shows a small **"Sample data"** label.
 - Never commit `.env.local`. Commit `.env.example`.

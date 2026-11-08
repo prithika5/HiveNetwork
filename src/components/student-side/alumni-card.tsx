@@ -1,78 +1,56 @@
-import { HexAvatar } from "@/components/hex-avatar";
+import { GraduationCap, Lock } from "lucide-react";
+import { Avatar } from "@/components/hex-avatar";
+import { CompanyLogo } from "@/components/company-logo";
 import { SampleBadge } from "@/components/sample-badge";
-import { HELP_TYPES, JOURNEY, shortYear } from "@/lib/labels";
+import { JOURNEY } from "@/lib/labels";
 import type { AlumniPreview } from "@/lib/alumni";
 
-/** One alum in the directory. Pure display — the parent decides what clicking does. */
+/** Directory card — photo, name, role, company, year, ≤3 tags, one button. Parent decides what clicking does. */
 export function AlumniCard({ alum, unlocked }: { alum: AlumniPreview; unlocked: boolean }) {
   const name = unlocked && alum.full_name ? alum.full_name : alum.display_name;
-  const steps = (alum.path_line ?? "").split(" → ").filter(Boolean);
+  const tags = [...alum.fields, ...alum.path_tags.map((t) => JOURNEY[t]?.label ?? t)];
+  const shown = tags.slice(0, 3);
+  const extra = tags.length - shown.length;
+
   return (
-    <div className="flex h-full flex-col rounded-2xl border bg-white p-5 text-left shadow-sm transition-all group-hover:-translate-y-0.5 group-hover:border-hive-gold group-hover:shadow-md">
-      <div className="flex items-start gap-4">
-        <HexAvatar src={alum.photo_url} name={name} size={60} />
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <h3 className="text-lg font-semibold text-hive-green">{name}</h3>
-            {alum.verified && (
-              <span className="rounded-full bg-hive-green/10 px-2 py-0.5 text-[11px] font-semibold text-hive-green">
-                ✓ Verified Alum
-              </span>
-            )}
-          </div>
-          <p className="text-sm font-medium leading-snug">
-            {alum.job_title}
-            {alum.company && <span className="text-muted-foreground"> @ {alum.company}</span>}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Sac State {shortYear(alum.grad_year)} · {alum.major}
-          </p>
-        </div>
+    <div className="flex h-full flex-col rounded-2xl border border-line bg-white p-5 text-left transition duration-200 group-hover:-translate-y-0.5 group-hover:shadow-[0_6px_20px_-12px_rgba(28,25,23,0.25)]">
+      <div className="flex items-start justify-between">
+        <Avatar src={alum.photo_url} name={name} size={64} />
+        {alum.is_sample && <SampleBadge />}
       </div>
 
-      {steps.length > 0 && (
-        <p className="mt-4 line-clamp-2 text-sm text-foreground/80">
-          {steps.map((s, i) => (
-            <span key={i}>
-              {i > 0 && <span className="mx-1 text-hive-gold">→</span>}
-              {s}
-            </span>
-          ))}
-        </p>
-      )}
+      <h3 className="mt-4 text-lg font-semibold tracking-tight text-ink">{name}</h3>
+      <p className="mt-0.5 line-clamp-1 text-sm text-stone">{alum.job_title}</p>
 
-      {alum.path_tags.length > 0 && (
-        <div className="mt-3 flex flex-wrap gap-1.5">
-          {alum.path_tags.map((t) => (
-            <span key={t} className="rounded-full bg-hive-gold-light px-2.5 py-1 text-xs font-medium text-hive-green">
-              {JOURNEY[t]?.icon} {JOURNEY[t]?.label ?? t}
-            </span>
-          ))}
-        </div>
-      )}
-
-      {unlocked && alum.ask_me_about?.[0] && (
-        <p className="mt-3 text-sm italic text-muted-foreground">“Ask me about {alum.ask_me_about[0].toLowerCase()}.”</p>
-      )}
-
-      <div className="mt-auto pt-4">
-        <div className="flex flex-wrap gap-1.5">
-          {alum.fields.map((f) => (
-            <span key={f} className="rounded-md border px-2 py-0.5 text-xs text-muted-foreground">
-              {f}
-            </span>
-          ))}
-        </div>
-        {alum.help_types.length > 0 && (
-          <p className="mt-3 text-xs text-muted-foreground">
-            <span className="font-semibold text-foreground">Offers:</span>{" "}
-            {alum.help_types.map((h) => HELP_TYPES[h] ?? h).join(" · ")}
+      <div className="mt-3 space-y-1.5 text-sm text-stone">
+        {alum.company && (
+          <p className="flex items-center gap-2">
+            <CompanyLogo domain={alum.company_domain} name={alum.company} size={18} />
+            <span className="line-clamp-1 text-ink">{alum.company}</span>
           </p>
         )}
-        <div className="mt-3 flex items-center justify-between gap-2">
-          <p className="text-sm font-semibold text-hive-green">{unlocked ? "View path →" : "🔒 View full profile"}</p>
-          {alum.is_sample && <SampleBadge />}
-        </div>
+        {alum.grad_year && (
+          <p className="flex items-center gap-2">
+            <GraduationCap className="size-[18px] text-stone" strokeWidth={1.6} />
+            Sac State &apos;{String(alum.grad_year).slice(-2)}
+          </p>
+        )}
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-1.5">
+        {shown.map((t) => (
+          <span key={t} className="rounded-full bg-stone-100 px-2.5 py-1 text-xs text-ink">
+            {t}
+          </span>
+        ))}
+        {extra > 0 && <span className="rounded-full bg-stone-100 px-2.5 py-1 text-xs text-stone">+{extra}</span>}
+      </div>
+
+      <div className="mt-auto pt-5">
+        <span className="flex h-9 w-full items-center justify-center gap-1.5 rounded-full border border-line text-sm font-medium text-ink transition-colors group-hover:border-ink">
+          {!unlocked && <Lock className="size-3.5" strokeWidth={2} />}
+          View profile
+        </span>
       </div>
     </div>
   );

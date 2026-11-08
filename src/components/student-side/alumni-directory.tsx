@@ -134,7 +134,7 @@ export function AlumniDirectory({
           {alumni.length === 0 ? "No alumni yet — run npm run seed to load the sample data." : "No alumni match those filters. Try clearing one."}
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className={limit ? "grid gap-5 sm:grid-cols-2 lg:grid-cols-4" : "grid gap-5 sm:grid-cols-2 lg:grid-cols-3"}>
           {list.map((a) =>
             unlocked ? (
               <Link key={a.id} href={`/alumni/${a.id}`} className="group block rounded-2xl outline-none focus-visible:ring-3 focus-visible:ring-ring">

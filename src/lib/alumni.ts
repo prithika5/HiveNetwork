@@ -16,6 +16,7 @@ export type AlumniPreview = {
   path_line: string | null;
   verified: boolean;
   is_sample: boolean;
+  company_domain?: string | null;
   /** Only present when the viewer is logged in with a Sac State account. */
   full_name?: string;
   ask_me_about?: string[];

@@ -8,7 +8,7 @@ const geistSans = Geist({ variable: "--font-sans", subsets: ["latin"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Hive Network — Sac State alumni, matched to your goal",
+  title: "Hive Network",
   description:
     "Hive Network matches Sac State students with alumni who share their goals and their story, preps every conversation, and turns great chats into referrals.",
 };
@@ -16,14 +16,12 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col bg-white text-foreground">
-        <Suspense fallback={<div className="h-16 border-b" />}>
+      <body className="flex min-h-full flex-col bg-background text-foreground">
+        <Suspense fallback={<div className="h-16 border-b border-line" />}>
           <SiteHeader />
         </Suspense>
         <main className="flex-1">{children}</main>
-        <footer className="border-t py-6 text-center text-sm text-muted-foreground">
-          Hive Network · Built at Capital Hacks 5.0 · For the Sac State community 🐝
-        </footer>
+        <footer className="py-10 text-center text-xs text-stone">Hive Network · Capital Hacks 5.0</footer>
       </body>
     </html>
   );
