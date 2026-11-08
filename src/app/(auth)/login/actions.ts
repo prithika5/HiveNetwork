@@ -50,7 +50,7 @@ export async function authenticate(_prev: AuthState, formData: FormData): Promis
     if (!data.session) {
       return { info: "Account created — check your email to confirm, then log in. (Tip: turn off “Confirm email” in Supabase for the demo.)" };
     }
-    redirect(next); // Step 6 will send new users to /onboarding
+    redirect(next === "/" ? "/onboarding" : `/onboarding?next=${encodeURIComponent(next)}`);
   }
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -71,6 +71,9 @@ export async function authenticate(_prev: AuthState, formData: FormData): Promis
     return { error: "This is a student account — use the Student tab." };
   }
 
+  if (profile && !profile.onboarded && profile.role !== "admin") {
+    redirect(next === "/" ? "/onboarding" : `/onboarding?next=${encodeURIComponent(next)}`);
+  }
   redirect(next);
 }
 
