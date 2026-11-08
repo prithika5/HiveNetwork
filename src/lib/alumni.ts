@@ -53,3 +53,80 @@ export async function getDirectory(): Promise<Directory> {
     alumni: (previews ?? []).map((a) => ({ ...a, ...(extra.get(a.id) ?? {}) }) as AlumniPreview),
   };
 }
+
+/** Full alumni profile — only readable by logged-in Sac State members (enforced by RLS). */
+export type PathStep = { year: number; title: string; kind: string };
+export type AlumniProfile = {
+  id: string;
+  full_name: string;
+  photo_url: string | null;
+  job_title: string | null;
+  company: string | null;
+  major: string | null;
+  grad_year: number | null;
+  bio: string | null;
+  hometown: string | null;
+  clubs: string[];
+  fun_facts: string[];
+  hobbies: string[];
+  languages: string[];
+  favorite_spot: string | null;
+  path_story: PathStep[];
+  path_tags: string[];
+  ask_me_about: string[];
+  fields: string[];
+  help_types: string[];
+  calendly_url: string | null;
+  linkedin_url: string | null;
+  verified: boolean;
+  is_sample: boolean;
+};
+
+const PROFILE_COLUMNS =
+  "id, full_name, photo_url, job_title, company, major, grad_year, bio, hometown, clubs, fun_facts, hobbies, languages, favorite_spot, path_story, path_tags, ask_me_about, fields, help_types, calendly_url, linkedin_url, verified, is_sample";
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export async function getAlumniProfile(id: string): Promise<AlumniProfile | null> {
+  if (!supabaseConfigured || !UUID.test(id)) return null;
+  const supabase = await createClient();
+  const { data } = await supabase.from("profiles").select(PROFILE_COLUMNS).eq("id", id).eq("role", "alumni").maybeSingle();
+  if (!data) return null;
+  return { ...data, path_story: [...((data.path_story as PathStep[]) ?? [])].sort((a, b) => a.year - b.year) } as AlumniProfile;
+}
+
+/** Does this alum exist publicly? (Lets us tell "locked" apart from "not found".) */
+export async function alumniExists(id: string): Promise<boolean> {
+  if (!supabaseConfigured || !UUID.test(id)) return false;
+  const supabase = await createClient();
+  const { data } = await supabase.from("alumni_public").select("id").eq("id", id).maybeSingle();
+  return !!data;
+}
+
+export async function getKudos(alumniId: string): Promise<{ id: string; note: string; created_at: string }[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("kudos")
+    .select("id, note, created_at")
+    .eq("alumni_id", alumniId)
+    .order("created_at", { ascending: false })
+    .limit(6);
+  return data ?? [];
+}
+
+/** The viewer's cached AI match for this alum, if any (Step 7 fills the matches table). */
+export async function getMatchFor(alumniId: string): Promise<{ score: number; reasons: string[] } | null> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+  const { data } = await supabase
+    .from("matches")
+    .select("score, reasons")
+    .eq("student_id", user.id)
+    .eq("alumni_id", alumniId)
+    .eq("hidden", false)
+    .maybeSingle();
+  return data ?? null;
+}
