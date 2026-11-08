@@ -5,7 +5,10 @@ import { getAlumniProfile } from "@/lib/alumni";
 import { getCurrentUser } from "@/lib/auth";
 import { getOwnProfile } from "@/lib/profile";
 import { createClient } from "@/lib/supabase/server";
-import { HexAvatar } from "@/components/hex-avatar";
+import { CheckCircle2, ChevronLeft } from "lucide-react";
+import { Avatar } from "@/components/hex-avatar";
+import { CompanyLogo } from "@/components/company-logo";
+import { HornetIcon } from "@/components/hive-logo";
 import { BookingFlow } from "@/components/student-side/booking-flow";
 import { ChatPrepCard } from "@/components/student-side/chat-prep";
 import type { ChatPrep } from "@/lib/ai/student";
@@ -21,10 +24,11 @@ async function Booking({ params, searchParams }: { params: Promise<{ id: string 
 
   if (user.role !== "student") {
     return (
-      <div className="mx-auto max-w-lg px-4 py-24 text-center">
-        <h1 className="text-2xl font-bold text-hive-green">1:1s are booked by students</h1>
-        <Link href={`/alumni/${id}`} className={buttonVariants({ variant: "outline", className: "mt-6 h-10 px-4" })}>
-          ← Back to {first}&apos;s profile
+      <div className="mx-auto max-w-md px-5 py-28 text-center">
+        <HornetIcon className="mx-auto h-10 w-10" />
+        <h1 className="mt-4 text-2xl font-semibold tracking-tight text-ink">Students only</h1>
+        <Link href={`/alumni/${id}`} className={buttonVariants({ variant: "outline", className: "mt-6 h-10 rounded-full bg-white px-5" })}>
+          Back
         </Link>
       </div>
     );
@@ -44,32 +48,34 @@ async function Booking({ params, searchParams }: { params: Promise<{ id: string 
   ]);
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8">
-      <Link href={`/alumni/${id}`} className="text-sm font-medium text-muted-foreground hover:text-hive-green">
-        ← {first}&apos;s profile
+    <div className="mx-auto max-w-2xl px-5 py-10">
+      <Link href={`/alumni/${id}`} className="inline-flex items-center gap-1 text-sm text-stone hover:text-ink">
+        <ChevronLeft className="size-4" strokeWidth={1.8} />
+        {first}
       </Link>
-      <div className="mb-8 mt-4 flex items-center gap-4">
-        <HexAvatar src={alum.photo_url} name={alum.full_name} size={64} />
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-hive-green">Book a 1:1 with {first}</h1>
-          <p className="text-muted-foreground">
-            {alum.job_title}
-            {alum.company && ` @ ${alum.company}`} · Sac State {alum.grad_year}
-          </p>
+      <div className="mb-8 mt-6 flex items-center gap-4">
+        <Avatar src={alum.photo_url} name={alum.full_name} size={56} />
+        <div className="min-w-0">
+          <h1 className="text-2xl font-semibold tracking-tight text-ink sm:text-3xl">Book with {first}</h1>
+          {alum.company && (
+            <p className="mt-1 flex items-center gap-2 text-sm text-stone">
+              <CompanyLogo domain={alum.company_domain} name={alum.company} size={16} />
+              {alum.company}
+            </p>
+          )}
         </div>
       </div>
 
       {open?.status === "scheduled" ? (
-        <div className="space-y-6">
-          <div className="rounded-2xl border bg-white p-8 text-center shadow-sm">
-            <p className="text-3xl">✅</p>
-            <h2 className="mt-2 text-xl font-bold text-hive-green">You&apos;re booked with {first}</h2>
-            <p className="mt-1 text-muted-foreground">Check your email for the calendar invite. Your prep is below — and always in My chats.</p>
-            <Link href="/chats" className={buttonVariants({ className: "mt-5 h-11 px-6 text-base" })}>
-              Go to My chats →
+        <div className="space-y-5">
+          <div className="rounded-2xl border border-line bg-white p-8 text-center">
+            <CheckCircle2 className="mx-auto size-8 text-honey" strokeWidth={1.6} />
+            <h2 className="mt-3 text-xl font-semibold tracking-tight text-ink">You&apos;re booked</h2>
+            <Link href="/chats" className={buttonVariants({ className: "mt-5 h-10 rounded-full px-5" })}>
+              My chats
             </Link>
           </div>
-          <ChatPrepCard requestId={open.id} initial={(open.ai_prep as ChatPrep | null) ?? null} alumFirstName={first} />
+          <ChatPrepCard requestId={open.id} initial={(open.ai_prep as ChatPrep | null) ?? null} />
         </div>
       ) : (
         <BookingFlow
@@ -85,7 +91,7 @@ async function Booking({ params, searchParams }: { params: Promise<{ id: string 
 
 export default function BookPage({ params, searchParams }: PageProps<"/alumni/[id]/book">) {
   return (
-    <Suspense fallback={<div className="mx-auto mt-10 h-[600px] max-w-3xl animate-pulse rounded-2xl bg-secondary" />}>
+    <Suspense fallback={<div className="mx-auto mt-10 h-[600px] max-w-2xl animate-pulse rounded-2xl border border-line bg-white" />}>
       <Booking params={params} searchParams={searchParams as Promise<{ type?: string }>} />
     </Suspense>
   );
