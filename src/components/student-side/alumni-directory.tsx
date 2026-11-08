@@ -4,13 +4,14 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AlumniCard } from "./alumni-card";
 import { buttonVariants } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { ChevronDown, Lock, Search } from "lucide-react";
+import { HornetIcon } from "@/components/hive-logo";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { HELP_TYPES, JOURNEY } from "@/lib/labels";
 import type { AlumniPreview } from "@/lib/alumni";
 
 const YEAR_RANGES = [
-  { value: "", label: "Any grad year" },
+  { value: "", label: "Grad year" },
   { value: "2020-2100", label: "2020 or later" },
   { value: "2015-2019", label: "2015 – 2019" },
   { value: "0-2014", label: "2014 or earlier" },
@@ -33,18 +34,21 @@ function Select({
   options: { value: string; label: string }[];
 }) {
   return (
-    <select
-      aria-label={label}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      className={`h-10 rounded-lg border bg-white px-3 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50 ${value ? "border-hive-green font-medium text-hive-green" : "text-muted-foreground"}`}
-    >
-      {options.map((o) => (
-        <option key={o.value} value={o.value}>
-          {o.label}
-        </option>
-      ))}
-    </select>
+    <div className="relative shrink-0">
+      <select
+        aria-label={label}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={`h-9 max-w-48 appearance-none truncate rounded-full border bg-white pl-3.5 pr-8 text-sm outline-none transition-colors [field-sizing:content] focus-visible:ring-3 focus-visible:ring-ring/50 ${value ? "border-ink text-ink" : "border-line text-stone hover:text-ink"}`}
+      >
+        {options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
+      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 size-3.5 -translate-y-1/2 text-stone" strokeWidth={2} />
+    </div>
   );
 }
 
@@ -102,36 +106,39 @@ export function AlumniDirectory({
   return (
     <div>
       {!limit && (
-        <div className="mb-6 space-y-3">
-          <Input
-            type="search"
-            value={f.q}
-            onChange={(e) => set("q")(e.target.value)}
-            placeholder="Search by name, company, role, or topic — e.g. “government”, “data”, “nursing”, “Sac City”"
-            className="h-12 rounded-xl text-base"
-          />
-          <div className="flex flex-wrap gap-2">
-            <Select label="Field" value={f.field} onChange={set("field")} options={[{ value: "", label: "Any field" }, ...options.fields.map((v) => ({ value: v, label: v }))]} />
-            <Select label="Company" value={f.company} onChange={set("company")} options={[{ value: "", label: "Any company" }, ...options.companies.map((v) => ({ value: v, label: v }))]} />
-            <Select label="Major" value={f.major} onChange={set("major")} options={[{ value: "", label: "Any major" }, ...options.majors.map((v) => ({ value: v, label: v }))]} />
+        <div className="mb-8 space-y-3">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-stone" strokeWidth={1.8} />
+            <input
+              type="search"
+              aria-label="Search alumni"
+              value={f.q}
+              onChange={(e) => set("q")(e.target.value)}
+              placeholder="Search name, company, or role"
+              className="h-12 w-full rounded-full border border-line bg-white pl-11 pr-4 text-[15px] text-ink outline-none placeholder:text-stone focus-visible:ring-3 focus-visible:ring-ring/50"
+            />
+          </div>
+          <div className="-mx-5 flex items-center gap-2 overflow-x-auto px-5 pb-1 sm:mx-0 sm:px-0">
+            <Select label="Field" value={f.field} onChange={set("field")} options={[{ value: "", label: "Field" }, ...options.fields.map((v) => ({ value: v, label: v }))]} />
+            <Select label="Company" value={f.company} onChange={set("company")} options={[{ value: "", label: "Company" }, ...options.companies.map((v) => ({ value: v, label: v }))]} />
+            <Select label="Major" value={f.major} onChange={set("major")} options={[{ value: "", label: "Major" }, ...options.majors.map((v) => ({ value: v, label: v }))]} />
             <Select label="Grad year" value={f.years} onChange={set("years")} options={YEAR_RANGES} />
-            <Select label="Journey" value={f.journey} onChange={set("journey")} options={[{ value: "", label: "Any journey" }, ...options.journeys.map((v) => ({ value: v, label: `${JOURNEY[v]?.icon ?? ""} ${JOURNEY[v]?.label ?? v}` }))]} />
-            <Select label="Help type" value={f.help} onChange={set("help")} options={[{ value: "", label: "Any help type" }, ...options.help.map((v) => ({ value: v, label: HELP_TYPES[v] ?? v }))]} />
+            <Select label="Journey" value={f.journey} onChange={set("journey")} options={[{ value: "", label: "Journey" }, ...options.journeys.map((v) => ({ value: v, label: JOURNEY[v]?.label ?? v }))]} />
+            <Select label="Help type" value={f.help} onChange={set("help")} options={[{ value: "", label: "Help" }, ...options.help.map((v) => ({ value: v, label: HELP_TYPES[v] ?? v }))]} />
             {active && (
-              <button type="button" onClick={() => setF(EMPTY)} className="h-10 px-3 text-sm font-medium text-hive-green underline-offset-4 hover:underline">
-                Clear filters
+              <button type="button" onClick={() => setF(EMPTY)} className="h-9 shrink-0 px-2 text-sm text-stone hover:text-ink">
+                Clear
               </button>
             )}
+            <span className="ml-auto shrink-0 pl-3 text-sm text-stone">{shown.length} alumni</span>
           </div>
-          <p className="text-sm text-muted-foreground">
-            Showing <strong className="text-foreground">{shown.length}</strong> of {alumni.length} alumni
-          </p>
         </div>
       )}
 
       {list.length === 0 ? (
-        <div className="rounded-2xl border border-dashed p-12 text-center text-muted-foreground">
-          {alumni.length === 0 ? "No alumni yet — run npm run seed to load the sample data." : "No alumni match those filters. Try clearing one."}
+        <div className="rounded-2xl border border-line bg-white p-12 text-center">
+          <HornetIcon className="mx-auto h-10 w-10" />
+          <p className="mt-3 text-stone">{alumni.length === 0 ? "No alumni yet" : "No matches"}</p>
         </div>
       ) : (
         <div className={limit ? "grid gap-5 sm:grid-cols-2 lg:grid-cols-4" : "grid gap-5 sm:grid-cols-2 lg:grid-cols-3"}>
@@ -152,13 +159,9 @@ export function AlumniDirectory({
       <Dialog open={!!locked} onOpenChange={(open) => !open && setLocked(null)}>
         <DialogContent className="rounded-2xl sm:max-w-md">
           <DialogHeader>
-            <div className="hex mx-auto mb-2 flex h-14 w-14 items-center justify-center bg-hive-gold-light text-2xl">🔒</div>
-            <DialogTitle className="text-center text-xl text-hive-green">See {firstName}&apos;s full profile</DialogTitle>
-            <DialogDescription className="text-center text-base">
-              {loggedIn
-                ? "Full profiles are open to Sac State students and verified alumni. Your alumni account is still pending verification — we'll unlock it soon."
-                : `Log in with your Sac State account to see ${firstName}'s full profile — their story, Path Story, and how to book a 1:1.`}
-            </DialogDescription>
+            <Lock className="mx-auto mb-2 size-6 text-ink" strokeWidth={1.6} />
+            <DialogTitle className="text-center text-xl text-ink">{firstName}&apos;s profile</DialogTitle>
+            <DialogDescription className="text-center">{loggedIn ? "Unlocks once you're verified." : "Log in with your Sac State account."}</DialogDescription>
           </DialogHeader>
           {!loggedIn && locked && (
             <Link

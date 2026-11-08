@@ -17,7 +17,7 @@ async function MatchesLoader() {
   const state = await getMatchesState();
   if (state.status === "not-student") return null;
   return (
-    <div className="mb-10">
+    <div className="mb-14">
       <TopMatches initial={state} />
     </div>
   );
@@ -26,10 +26,10 @@ async function MatchesLoader() {
 function DirectorySkeleton() {
   return (
     <div>
-      <div className="mb-6 h-12 animate-pulse rounded-xl bg-secondary" />
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="mb-8 h-12 animate-pulse rounded-full bg-stone-100" />
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className="h-72 animate-pulse rounded-2xl bg-secondary" />
+          <div key={i} className="h-80 animate-pulse rounded-2xl border border-line bg-white" />
         ))}
       </div>
     </div>
@@ -38,16 +38,11 @@ function DirectorySkeleton() {
 
 export default function AlumniPage() {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
+    <div className="mx-auto max-w-6xl px-5 py-12">
       <Suspense>
         <MatchesLoader />
       </Suspense>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight text-hive-green sm:text-4xl">All alumni</h1>
-        <p className="mt-2 text-lg text-muted-foreground">
-          Hornets who&apos;ve been where you&apos;re going — and want to help you get there.
-        </p>
-      </div>
+      <h1 className="mb-6 text-3xl font-semibold tracking-tight text-ink">Alumni</h1>
       <Suspense fallback={<DirectorySkeleton />}>
         <DirectoryLoader />
       </Suspense>

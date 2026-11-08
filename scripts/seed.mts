@@ -109,6 +109,7 @@ async function main() {
         .update({
           ...profile,
           calendly_url: (a.calendly_url as string | undefined) ?? DEMO_CALENDLY,
+          photo_url: `https://api.dicebear.com/9.x/notionists-neutral/svg?seed=${encodeURIComponent(a.full_name)}&backgroundColor=f3e8d6,e4ebe1,e1e8ef,efe3e8,e8e4f0`,
           verified: true,
           onboarded: true,
           is_sample: true,
