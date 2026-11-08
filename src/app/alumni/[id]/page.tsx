@@ -6,6 +6,7 @@ import { getCurrentUser } from "@/lib/auth";
 import { HELP_TYPES, JOURNEY } from "@/lib/labels";
 import { HexAvatar } from "@/components/hex-avatar";
 import { SampleBadge } from "@/components/sample-badge";
+import { CompanyLogo } from "@/components/company-logo";
 import { PathStory } from "@/components/student-side/path-story";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -79,9 +80,13 @@ async function Profile({ params }: { params: Promise<{ id: string }> }) {
               )}
               {alum.is_sample && <SampleBadge />}
             </div>
-            <p className="mt-1 text-lg font-medium">
+            <p className="mt-1 flex flex-wrap items-center gap-2 text-lg font-medium">
               {alum.job_title}
-              {alum.company && <span className="text-muted-foreground"> @ {alum.company}</span>}
+              {alum.company && (
+                <span className="flex items-center gap-2 text-muted-foreground">
+                  @ <CompanyLogo domain={alum.company_domain} name={alum.company} size={22} /> {alum.company}
+                </span>
+              )}
             </p>
             <p className="text-muted-foreground">
               Sac State {alum.grad_year} · {alum.major}

@@ -24,6 +24,10 @@ export type AlumniPreview = {
 
 export type Directory = { alumni: AlumniPreview[]; unlocked: boolean };
 
+/** True when a query failed only because migration 0002 (company_domain) hasn't been run yet. */
+export const missingCompanyDomain = (err: { message?: string } | null) => !!err && /company_domain/.test(err.message ?? "");
+const withoutDomain = (cols: string) => cols.replace(", company_domain", "");
+
 /**
  * Loads all alumni previews. If the viewer is a logged-in Sac State member, RLS lets
  * them read full names + "ask me about" too, which we merge in (unlocked = true).
@@ -31,10 +35,14 @@ export type Directory = { alumni: AlumniPreview[]; unlocked: boolean };
 export async function getDirectory(): Promise<Directory> {
   if (!supabaseConfigured) return { alumni: [], unlocked: false };
   const supabase = await createClient();
-  const { data: previews, error } = await supabase
-    .from("alumni_public")
-    .select("id, display_name, photo_url, job_title, company, major, grad_year, fields, path_tags, help_types, path_line, verified, is_sample")
-    .order("grad_year", { ascending: false });
+  const cols = "id, display_name, photo_url, job_title, company, company_domain, major, grad_year, fields, path_tags, help_types, path_line, verified, is_sample";
+  const load = async (c: string) => {
+    const res = await supabase.from("alumni_public").select(c).order("grad_year", { ascending: false });
+    return { previews: res.data as unknown as AlumniPreview[] | null, error: res.error };
+  };
+  let { previews, error } = await load(cols);
+  // Migration 0002 not applied yet → load without logos (gray initials) instead of crashing.
+  if (missingCompanyDomain(error)) ({ previews, error } = await load(withoutDomain(cols)));
   if (error) throw new Error(error.message);
 
   const {
@@ -67,6 +75,7 @@ export type AlumniProfile = {
   photo_url: string | null;
   job_title: string | null;
   company: string | null;
+  company_domain: string | null;
   major: string | null;
   grad_year: number | null;
   bio: string | null;
@@ -88,14 +97,17 @@ export type AlumniProfile = {
 };
 
 const PROFILE_COLUMNS =
-  "id, full_name, photo_url, job_title, company, major, grad_year, bio, hometown, clubs, fun_facts, hobbies, languages, favorite_spot, path_story, path_tags, ask_me_about, fields, help_types, calendly_url, linkedin_url, verified, is_sample";
+  "id, full_name, photo_url, job_title, company, company_domain, major, grad_year, bio, hometown, clubs, fun_facts, hobbies, languages, favorite_spot, path_story, path_tags, ask_me_about, fields, help_types, calendly_url, linkedin_url, verified, is_sample";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function getAlumniProfile(id: string): Promise<AlumniProfile | null> {
   if (!supabaseConfigured || !UUID.test(id)) return null;
   const supabase = await createClient();
-  const { data } = await supabase.from("profiles").select(PROFILE_COLUMNS).eq("id", id).eq("role", "alumni").maybeSingle();
+  let { data, error } = await supabase.from("profiles").select(PROFILE_COLUMNS).eq("id", id).eq("role", "alumni").maybeSingle();
+  if (missingCompanyDomain(error)) {
+    ({ data, error } = await supabase.from("profiles").select(withoutDomain(PROFILE_COLUMNS)).eq("id", id).eq("role", "alumni").maybeSingle());
+  }
   if (!data) return null;
   return { ...data, path_story: [...((data.path_story as PathStep[]) ?? [])].sort((a, b) => a.year - b.year) } as AlumniProfile;
 }

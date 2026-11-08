@@ -2,6 +2,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
 import { generateMatchesFor } from "@/lib/match-engine";
+import { missingCompanyDomain } from "@/lib/alumni";
 
 export type MatchCard = {
   alumni_id: string;
@@ -11,6 +12,7 @@ export type MatchCard = {
   photo_url: string | null;
   job_title: string | null;
   company: string | null;
+  company_domain: string | null;
   grad_year: number | null;
   is_sample: boolean;
 };
@@ -36,13 +38,19 @@ export async function getMatchesState(): Promise<MatchesState> {
 }
 
 async function readMatches(supabase: SupabaseClient, studentId: string): Promise<MatchCard[]> {
-  const { data } = await supabase
-    .from("matches")
-    .select("alumni_id, score, reasons, alum:profiles!matches_alumni_id_fkey(full_name, photo_url, job_title, company, grad_year, is_sample)")
-    .eq("student_id", studentId)
-    .eq("hidden", false)
-    .order("score", { ascending: false })
-    .limit(3);
+  type Row = { alumni_id: string; score: number; reasons: string[]; alum: unknown };
+  const query = async (alumCols: string) => {
+    const res = await supabase
+      .from("matches")
+      .select(`alumni_id, score, reasons, alum:profiles!matches_alumni_id_fkey(${alumCols})` as "*")
+      .eq("student_id", studentId)
+      .eq("hidden", false)
+      .order("score", { ascending: false })
+      .limit(3);
+    return { data: res.data as unknown as Row[] | null, error: res.error };
+  };
+  const first = await query("full_name, photo_url, job_title, company, company_domain, grad_year, is_sample");
+  const { data } = missingCompanyDomain(first.error) ? await query("full_name, photo_url, job_title, company, grad_year, is_sample") : first;
   return (data ?? [])
     .filter((m) => m.alum)
     .map((m) => {

@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, useTransition } from "react";
 import { notAFitAction, refreshMatchesAction } from "@/app/alumni/actions";
 import { HexAvatar } from "@/components/hex-avatar";
 import { SampleBadge } from "@/components/sample-badge";
+import { CompanyLogo } from "@/components/company-logo";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { shortYear } from "@/lib/labels";
 import type { MatchCard, MatchesState } from "@/lib/matches";
@@ -98,9 +99,16 @@ export function TopMatches({ initial }: { initial: MatchesState }) {
                       </Link>
                       {m.is_sample && <SampleBadge />}
                     </div>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="flex flex-wrap items-center gap-1.5 text-sm text-muted-foreground">
                       {m.job_title}
-                      {m.company && ` @ ${m.company}`} · Sac State {shortYear(m.grad_year)}
+                      {m.company && (
+                        <>
+                          <span>@</span>
+                          <CompanyLogo domain={m.company_domain} name={m.company} size={16} />
+                          <span className="text-ink">{m.company}</span>
+                        </>
+                      )}
+                      <span>· Sac State {shortYear(m.grad_year)}</span>
                     </p>
                     <ul className="mt-2 flex flex-wrap gap-1.5">
                       {m.reasons.map((r) => (
