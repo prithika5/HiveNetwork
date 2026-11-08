@@ -3,7 +3,8 @@
 import { safe } from "@/lib/safe";
 import { useEffect, useState, useTransition } from "react";
 import { declineAction, markCompletedAction, resumeUrlAction, setOpenToReferAction, snapshotAction } from "@/app/inbox/actions";
-import { HexAvatar } from "@/components/hex-avatar";
+import { ChevronDown, FileText } from "lucide-react";
+import { Avatar } from "@/components/hex-avatar";
 import { SampleBadge } from "@/components/sample-badge";
 import { Button } from "@/components/ui/button";
 import { BACKGROUND_CHIPS, HELP_TYPES, classStanding } from "@/lib/labels";
@@ -19,15 +20,15 @@ export type InboxRequest = {
   open_to_refer: boolean;
   ai_snapshot: ApplicantSnapshot | null;
   created_at: string;
-  student: { full_name: string; major: string | null; class_year: number | null; background_tags: string[]; goal: string | null; is_sample: boolean };
+  student: { full_name: string; photo_url?: string | null; major: string | null; class_year: number | null; background_tags: string[]; goal: string | null; is_sample: boolean };
 };
 
 const STATUS: Record<string, { label: string; cls: string }> = {
-  scheduled: { label: "✅ Scheduled via Calendly", cls: "bg-hive-green text-white" },
-  pending: { label: "⏳ Pending — not booked yet", cls: "bg-hive-gold-light text-hive-green" },
-  completed: { label: "✓ Completed", cls: "bg-secondary text-hive-green" },
-  declined: { label: "Declined", cls: "bg-secondary text-muted-foreground" },
-  canceled: { label: "Canceled", cls: "bg-secondary text-muted-foreground" },
+  scheduled: { label: "Scheduled", cls: "bg-honey-soft text-ink" },
+  pending: { label: "Not booked", cls: "bg-stone-100 text-stone" },
+  completed: { label: "Completed", cls: "bg-stone-100 text-ink" },
+  declined: { label: "Declined", cls: "bg-stone-100 text-stone" },
+  canceled: { label: "Canceled", cls: "bg-stone-100 text-stone" },
 };
 
 export function RequestCard({ req }: { req: InboxRequest }) {
@@ -36,11 +37,11 @@ export function RequestCard({ req }: { req: InboxRequest }) {
   const [snapshot, setSnapshot] = useState<ApplicantSnapshot | null>(req.ai_snapshot);
   const [snapLoading, setSnapLoading] = useState(!req.ai_snapshot);
   const [snapError, setSnapError] = useState<string | null>(null);
+  const [snapOpen, setSnapOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const isReferral = req.type === "referral";
   const s = req.student;
-  const first = s.full_name.split(" ")[0];
 
   // Generate the AI snapshot once if it isn't cached yet.
   useEffect(() => {
@@ -88,90 +89,84 @@ export function RequestCard({ req }: { req: InboxRequest }) {
 
   const st = STATUS[status] ?? STATUS.pending;
   const standing = classStanding(s.class_year);
+  const pillLabel = isReferral && status === "pending" ? "Awaiting reply" : isReferral && status === "completed" ? "Referred" : st.label;
 
   return (
-    <article className={cn("rounded-2xl border bg-white p-5 shadow-sm sm:p-6", isReferral && "border-2 border-hive-gold")}>
-      <div className="flex flex-wrap items-start gap-4">
-        <HexAvatar name={s.full_name} size={52} />
+    <article className="rounded-2xl border border-line bg-white p-5 sm:p-6">
+      <div className="flex items-start gap-4">
+        <Avatar src={s.photo_url} name={s.full_name} size={48} />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="text-lg font-semibold text-hive-green">{s.full_name}</h3>
-            <span className="text-sm text-muted-foreground">
-              · {s.major}
-              {standing && ` ${standing}`}
-            </span>
-            {s.background_tags.map((t) => (
-              <span key={t} className="rounded-full bg-hive-gold-light px-2 py-0.5 text-xs font-medium text-hive-green">
-                {BACKGROUND_CHIPS[t] ?? t}
-              </span>
-            ))}
+            <h3 className="font-semibold tracking-tight text-ink">{s.full_name}</h3>
             {s.is_sample && <SampleBadge />}
+            <span className={cn("ml-auto rounded-full px-2.5 py-1 text-xs font-medium", st.cls)}>{pillLabel}</span>
           </div>
-          {s.goal && (
-            <p className="mt-1 text-sm">
-              <span className="font-semibold">Goal:</span> {s.goal}
-            </p>
-          )}
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
-            <span className="font-semibold">{isReferral ? "🤝 Referral request" : `Wants: ${HELP_TYPES[req.type] ?? req.type}`}</span>
-            <span className={cn("rounded-full px-2.5 py-0.5 text-xs font-semibold", st.cls)}>{isReferral && status === "pending" ? "Awaiting your reply" : isReferral && status === "completed" ? "✓ Referred" : st.label}</span>
-            <span className="text-xs text-muted-foreground">{new Date(req.created_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span>
-          </div>
+          <p className="text-sm text-stone">
+            {s.major}
+            {standing && ` · ${standing}`}
+            {s.background_tags.length > 0 && ` · ${s.background_tags.map((t) => BACKGROUND_CHIPS[t]?.replace(/^\S+\s/, "") ?? t).join(", ")}`}
+          </p>
         </div>
       </div>
 
-      {req.message && <p className="mt-4 rounded-xl bg-secondary p-4 text-sm leading-relaxed">“{req.message}”</p>}
+      {s.goal && <p className="mt-4 text-[15px] text-ink">{s.goal}</p>}
+      <p className="mt-1 text-sm font-medium text-stone">{isReferral ? "Referral request" : HELP_TYPES[req.type] ?? req.type}</p>
+      {req.message && <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-stone" title={req.message}>{req.message}</p>}
 
-      <div className="mt-4 rounded-xl border border-hive-gold/50 bg-hive-gold-light/50 p-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-hive-green">✨ AI snapshot</p>
-        {snapLoading ? (
-          <p className="mt-2 animate-pulse text-sm text-hive-green">Reading {first}&apos;s profile{req.share_resume ? " and resume" : ""}…</p>
+      <button
+        type="button"
+        aria-expanded={snapOpen}
+        onClick={() => setSnapOpen(!snapOpen)}
+        className="mt-4 flex w-full items-center justify-between border-t border-line pt-4 text-sm font-medium text-ink"
+      >
+        ✨ AI snapshot
+        <ChevronDown className={cn("size-4 text-stone transition-transform", snapOpen && "rotate-180")} strokeWidth={1.8} />
+      </button>
+      {snapOpen &&
+        (snapLoading ? (
+          <div className="mt-3 h-24 animate-pulse rounded-xl bg-stone-100" />
         ) : snapshot ? (
-          <div className="mt-2 space-y-2 text-sm">
-            <p className="font-semibold text-hive-green">{snapshot.headline}</p>
+          <div className="mt-3 space-y-2 text-sm text-stone">
+            <p className="font-medium text-ink">{snapshot.headline}</p>
             <ul className="list-disc space-y-0.5 pl-5">
               {snapshot.summary.map((l, i) => (
                 <li key={i}>{l}</li>
               ))}
             </ul>
-            <p className="text-hive-green">
-              <span className="font-semibold">Relevant to you:</span> {snapshot.relevance_to_you}
-            </p>
+            <p>{snapshot.relevance_to_you}</p>
           </div>
         ) : (
-          <p className="mt-2 text-sm">
+          <p className="mt-3 text-sm text-stone">
             {snapError}{" "}
-            <button onClick={retrySnapshot} className="font-semibold text-hive-green underline">
-              Try again
+            <button onClick={retrySnapshot} className="font-medium text-ink underline">
+              Retry
             </button>
           </p>
-        )}
-      </div>
+        ))}
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
-        {req.share_resume ? (
-          <Button variant="outline" className="h-9 px-3" onClick={openResume}>
-            📄 View resume
+        {req.share_resume && (
+          <Button variant="outline" className="h-9 rounded-full bg-white px-4" onClick={openResume}>
+            <FileText className="size-4" strokeWidth={1.6} />
+            View resume
           </Button>
-        ) : (
-          <span className="text-xs text-muted-foreground">Resume not shared</span>
         )}
-        <div className="ml-auto flex flex-wrap items-center gap-2">
+        <div className="ml-auto flex flex-wrap items-center gap-3">
           {status === "pending" && !isReferral && (
-            <Button variant="ghost" className="h-9 px-3 text-muted-foreground" disabled={pending} onClick={() => act(() => declineAction(req.id), () => setStatus("declined"))}>
+            <button type="button" className="text-sm text-stone hover:text-ink disabled:opacity-50" disabled={pending} onClick={() => act(() => declineAction(req.id), () => setStatus("declined"))}>
               Decline
-            </Button>
+            </button>
           )}
           {(status === "pending" || status === "scheduled") && (
-            <Button className="h-9 px-4" disabled={pending} onClick={() => act(() => markCompletedAction(req.id), () => setStatus("completed"))}>
-              {isReferral ? "✓ Mark as referred" : "✓ Mark completed"}
+            <Button className="h-9 rounded-full px-4" disabled={pending} onClick={() => act(() => markCompletedAction(req.id), () => setStatus("completed"))}>
+              {isReferral ? "Mark referred" : "Mark done"}
             </Button>
           )}
           {status === "completed" && !isReferral && (
-            <label className={cn("flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium", openToRefer && "border-hive-green bg-hive-green text-white")}>
+            <label className="flex cursor-pointer items-center gap-2 text-sm text-ink">
               <input
                 type="checkbox"
-                className="h-4 w-4 accent-[#C4B581]"
+                className="size-4 accent-[#292524]"
                 checked={openToRefer}
                 disabled={pending}
                 onChange={(e) => {
@@ -179,12 +174,12 @@ export function RequestCard({ req }: { req: InboxRequest }) {
                   act(() => setOpenToReferAction(req.id, v), () => setOpenToRefer(v));
                 }}
               />
-              🤝 Open to refer {first}
+              Open to refer
             </label>
           )}
         </div>
       </div>
-      {error && <p className="mt-3 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
+      {error && <p className="mt-3 rounded-xl bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
     </article>
   );
 }

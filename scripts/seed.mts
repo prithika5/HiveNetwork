@@ -23,6 +23,12 @@ const DEMO_CALENDLY = process.env.DEMO_CALENDLY_URL || "https://calendly.com/hiv
 const db = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
 const data = JSON.parse(readFileSync(new URL("../supabase/sample-data.json", import.meta.url), "utf8"));
 
+/** Friendly illustrated placeholder portraits (DiceBear "personas"). */
+function avatarUrl(name: string, look: string) {
+  const hair = look === "woman" ? "long,bobCut,curlyBun,straightBun,extraLong,bobBangs" : "fade,shortCombover,buzzcut,curly,shortComboverChops";
+  return `https://api.dicebear.com/9.x/personas/svg?seed=${encodeURIComponent(name)}&hair=${hair}&hairColor=362c47,6c4545&eyes=open,happy&mouth=smile,bigSmile&facialHairProbability=0&body=squared,rounded&backgroundColor=f3e8d6,e4ebe1,e1e8ef,efe3e8,e8e4f0`;
+}
+
 type Person = { key: string; email: string; full_name: string; [k: string]: unknown };
 const ids: Record<string, string> = {};
 const DAY = 24 * 60 * 60 * 1000;
@@ -102,6 +108,7 @@ async function main() {
     const profile: Record<string, unknown> = { ...a };
     delete profile.key;
     delete profile.email;
+    delete profile.avatar;
     check(
       `profile ${a.full_name}`,
       await db
@@ -109,7 +116,7 @@ async function main() {
         .update({
           ...profile,
           calendly_url: (a.calendly_url as string | undefined) ?? DEMO_CALENDLY,
-          photo_url: `https://api.dicebear.com/9.x/notionists-neutral/svg?seed=${encodeURIComponent(a.full_name)}&backgroundColor=f3e8d6,e4ebe1,e1e8ef,efe3e8,e8e4f0`,
+          photo_url: avatarUrl(a.full_name, a.avatar as string),
           verified: true,
           onboarded: true,
           is_sample: true,
