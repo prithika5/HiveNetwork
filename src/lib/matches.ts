@@ -1,7 +1,7 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
-import { matchAlumni, type MatchCandidate, type MatchStudent } from "@/lib/ai/student";
+import { generateMatchesFor } from "@/lib/match-engine";
 
 export type MatchCard = {
   alumni_id: string;
@@ -20,9 +20,6 @@ export type MatchesState =
   | { status: "needs-profile" }
   | { status: "empty" } // onboarded but nothing cached yet → client triggers generation
   | { status: "ready"; matches: MatchCard[] };
-
-const ALUM_COLS =
-  "id, full_name, photo_url, job_title, company, major, grad_year, fields, path_tags, ask_me_about, skills, hometown, clubs, languages, hobbies, path_story, verified, is_sample";
 
 /** Cached matches for the logged-in student (never calls AI). */
 export async function getMatchesState(): Promise<MatchesState> {
@@ -61,29 +58,7 @@ export async function generateMatches(): Promise<MatchCard[]> {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Please log in.");
-
-  const [{ data: me }, { data: alumni }, { data: hidden }] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select("role, bio, goal, goal_field, major, skills, background_tags, hometown, clubs, languages, hobbies")
-      .eq("id", user.id)
-      .single(),
-    supabase.from("profiles").select(ALUM_COLS).eq("role", "alumni").eq("verified", true),
-    supabase.from("matches").select("alumni_id").eq("student_id", user.id).eq("hidden", true),
-  ]);
-  if (me?.role !== "student") throw new Error("Matches are for students.");
-
-  const hiddenIds = new Set((hidden ?? []).map((h) => h.alumni_id));
-  const candidates = (alumni ?? []).filter((a) => !hiddenIds.has(a.id)) as unknown as MatchCandidate[];
-  const results = await matchAlumni(me as MatchStudent, candidates);
-
-  await supabase.from("matches").delete().eq("student_id", user.id).eq("hidden", false);
-  if (results.length) {
-    const { error } = await supabase
-      .from("matches")
-      .upsert(results.map((r) => ({ student_id: user.id, ...r, hidden: false })), { onConflict: "student_id,alumni_id" });
-    if (error) throw new Error(error.message);
-  }
+  await generateMatchesFor(supabase, user.id);
   return readMatches(supabase, user.id);
 }
 

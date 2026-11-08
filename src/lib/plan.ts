@@ -1,7 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import { generateMatches } from "@/lib/matches";
-import { launchPlan, type PlanStep } from "@/lib/ai/student";
+import { buildPlanFor } from "@/lib/match-engine";
+import type { PlanStep } from "@/lib/ai/student";
 
 export type PlanView = {
   goal: string | null;
@@ -61,40 +61,5 @@ export async function getPlan(): Promise<PlanView | null> {
 /** Builds a new plan from the student's current matches (generating matches first if needed). */
 export async function buildPlan(): Promise<void> {
   const { supabase, user } = await me();
-  const { data: profile } = await supabase.from("profiles").select("role, goal").eq("id", user.id).single();
-  if (profile?.role !== "student") throw new Error("Launch Plans are for students.");
-  if (!profile.goal) throw new Error("Add your career goal in your profile first.");
-
-  const read = () =>
-    supabase
-      .from("matches")
-      .select("alumni_id, reasons, score, alum:profiles!matches_alumni_id_fkey(full_name, job_title, company, help_types, path_story)")
-      .eq("student_id", user.id)
-      .eq("hidden", false)
-      .order("score", { ascending: false })
-      .limit(3);
-  let { data: matches } = await read();
-  if (!matches?.length) {
-    await generateMatches();
-    ({ data: matches } = await read());
-  }
-  if (!matches?.length) throw new Error("No strong matches yet — add more to your profile and try again.");
-
-  const steps = await launchPlan(
-    profile.goal,
-    matches.map((m) => {
-      const a = (Array.isArray(m.alum) ? m.alum[0] : m.alum) as { full_name: string; job_title: string | null; company: string | null; help_types: string[]; path_story: { title: string }[] };
-      return {
-        alumni_id: m.alumni_id,
-        full_name: a.full_name,
-        job_title: a.job_title,
-        company: a.company,
-        reasons: m.reasons,
-        help_types: a.help_types,
-        path: (a.path_story ?? []).map((p) => p.title).join(" → "),
-      };
-    }),
-  );
-  const { error } = await supabase.from("launch_plans").insert({ student_id: user.id, goal: profile.goal, steps });
-  if (error) throw new Error(error.message);
+  await buildPlanFor(supabase, user.id);
 }

@@ -116,8 +116,13 @@ export function localMatches(
     }));
 }
 
+export type AIOptions = {
+  /** true (default): fall back to deterministic results if the AI fails. false: throw instead (used by pre-generation so fallbacks never get cached as AI output). */
+  fallback?: boolean;
+};
+
 /** AI #4 — pick 1–3 strong matches with a score and 2–3 specific, true reasons. */
-export async function matchAlumni(student: MatchStudent, candidates: MatchCandidate[]): Promise<MatchResult[]> {
+export async function matchAlumni(student: MatchStudent, candidates: MatchCandidate[], { fallback = true }: AIOptions = {}): Promise<MatchResult[]> {
   const ranked = candidates
     .map((a) => ({ a, ...preScore(student, a) }))
     .sort((x, y) => y.points - x.points)
@@ -175,8 +180,10 @@ Return JSON: { "matches": [ { "key": "A1", "score": 92, "reasons": ["…", "…"
         reasons: reasons.length >= 2 ? reasons : [...reasons, ...k.shared].slice(0, 3),
       });
     }
-    if (out.length) return out.sort((x, y) => y.score - x.score).slice(0, 3);
+    // Strict mode trusts an empty AI answer ("no strong matches"); default mode backfills locally.
+    if (out.length || !fallback) return out.sort((x, y) => y.score - x.score).slice(0, 3);
   } catch (err) {
+    if (!fallback) throw err;
     console.warn("[matchAlumni] AI unavailable, using local scoring:", (err as Error).message);
   }
   return localMatches(ranked);
@@ -295,10 +302,9 @@ const PlanSchema = z.object({
 const DEFAULT_TITLES = ["Learn the path", "Get interview-ready", "Get referral-ready"];
 const DEFAULT_TYPES = ["coffee_chat", "mock_interview", "coffee_chat"];
 
-export async function launchPlan(
-  goal: string,
-  matches: { alumni_id: string; full_name: string; job_title: string | null; company: string | null; reasons: string[]; help_types: string[]; path: string }[],
-): Promise<PlanStep[]> {
+export type PlanInput = { alumni_id: string; full_name: string; job_title: string | null; company: string | null; reasons: string[]; help_types: string[]; path: string };
+
+export async function launchPlan(goal: string, matches: PlanInput[], { fallback: allowFallback = true }: AIOptions = {}): Promise<PlanStep[]> {
   const keyed = matches.map((m, i) => ({ key: `A${i + 1}`, ...m }));
   const byKey = new Map(keyed.map((k) => [k.key, k]));
   const fallback = (): PlanStep[] =>
@@ -344,10 +350,14 @@ Return JSON: { "steps": [ { "key": "A2", "step_title": "Learn the path", "why": 
         chat_type: bookable.includes(s.chat_type) ? s.chat_type : (bookable[0] ?? "coffee_chat"),
       });
     }
+    if (!allowFallback && seen.size < keyed.length) throw new Error("AI skipped some matches in the plan");
     // Any match the model skipped goes at the end.
     for (const k of keyed) if (!seen.has(k.key)) out.push({ ...fallback()[keyed.indexOf(k)], order: out.length + 1 });
-    return out.length ? out : fallback();
+    if (out.length) return out;
+    if (!allowFallback) throw new Error("AI returned no usable plan steps");
+    return fallback();
   } catch (err) {
+    if (!allowFallback) throw err;
     console.warn("[launchPlan] AI unavailable, using default order:", (err as Error).message);
     return fallback();
   }

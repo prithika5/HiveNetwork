@@ -37,6 +37,20 @@ function isRateLimit(err: unknown) {
   return e?.status === 429 || e?.code === 429 || /429|RESOURCE_EXHAUSTED/i.test(e?.message ?? "");
 }
 
+/** Bad key, bad request, unknown model… — retrying can't help. */
+function isPermanent(err: unknown) {
+  const e = err as { status?: number; code?: number; message?: string };
+  const status = e?.status ?? e?.code;
+  if (typeof status === "number") return status >= 400 && status < 500 && status !== 429;
+  return /API_KEY_INVALID|PERMISSION_DENIED|"code":\s*40[0134]/.test(e?.message ?? "");
+}
+
+/** Short human-readable message from SDK errors (which often embed the whole JSON response). */
+export function aiErrorMessage(err: unknown): string {
+  const msg = (err as Error)?.message ?? String(err);
+  return msg.match(/"message"\s*:\s*"([^"]+)"/)?.[1] ?? msg.slice(0, 160);
+}
+
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** Calls the model, parses JSON, validates with zod. Retries with backoff on 429 / bad JSON. */
@@ -53,7 +67,7 @@ export async function generateJSON<T extends z.ZodType>(
       return schema.parse(json);
     } catch (err) {
       lastErr = err;
-      if (attempt === retries) break;
+      if (attempt === retries || isPermanent(err)) break;
       await sleep((isRateLimit(err) ? 4000 : 800) * 2 ** attempt);
     }
   }
