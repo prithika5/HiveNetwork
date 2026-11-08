@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { HornetIcon } from "@/components/hive-logo";
 import { ChatItem, type StudentChat } from "@/components/student-side/chat-item";
 import { buttonVariants } from "@/components/ui/button";
 
@@ -16,7 +17,7 @@ async function Chats() {
     supabase
       .from("requests")
       .select(
-        "id, alumni_id, type, status, message, open_to_refer, ai_prep, created_at, alum:profiles!requests_alumni_id_fkey(id, full_name, photo_url, job_title, company, is_sample)",
+        "id, alumni_id, type, status, message, open_to_refer, ai_prep, created_at, alum:profiles!requests_alumni_id_fkey(id, full_name, photo_url, job_title, company, company_domain, is_sample)",
       )
       .eq("student_id", user.id)
       .order("created_at", { ascending: false }),
@@ -46,50 +47,55 @@ async function Chats() {
   const referrals = chats.filter((c) => c.type === "referral");
   const past = chats.filter((c) => c.type !== "referral" && !["pending", "scheduled"].includes(c.status));
 
-  return (
-    <div className="mx-auto max-w-4xl px-4 py-10">
-      <h1 className="text-3xl font-bold tracking-tight text-hive-green">My chats</h1>
-      <p className="mt-1 text-muted-foreground">Your 1:1s, prep, and the path from a great conversation to a referral.</p>
+  const groups = [
+    { title: "Upcoming", items: upcoming },
+    { title: "Referrals", items: referrals },
+    { title: "Past", items: past },
+  ].filter((g) => g.items.length > 0);
 
+  return (
+    <div className="mx-auto max-w-3xl px-5 py-12">
+      <h1 className="mb-8 text-3xl font-semibold tracking-tight text-ink">Chats</h1>
       {chats.length === 0 ? (
-        <div className="mt-10 rounded-2xl border border-dashed p-12 text-center">
-          <p className="text-lg font-medium">No chats yet.</p>
-          <p className="mt-1 text-muted-foreground">Start with your AI matches — they&apos;re the alumni most likely to say yes.</p>
-          <Link href="/alumni" className={buttonVariants({ className: "mt-5 h-11 px-6 text-base" })}>
-            ✨ See my matches
+        <div className="rounded-2xl border border-line bg-white p-12 text-center">
+          <HornetIcon className="mx-auto h-10 w-10" />
+          <p className="mt-3 text-stone">No chats yet</p>
+          <Link href="/alumni" className={buttonVariants({ className: "mt-5 h-10 rounded-full px-5" })}>
+            See matches
           </Link>
         </div>
       ) : (
-        <div className="mt-8 space-y-10">
-          <section className="space-y-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Upcoming ({upcoming.length})</h2>
-            {upcoming.length ? upcoming.map((c) => <ChatItem key={c.id} chat={c} />) : <p className="text-muted-foreground">Nothing booked right now.</p>}
-          </section>
-          {referrals.length > 0 && (
-            <section className="space-y-4">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">🤝 Referrals ({referrals.length})</h2>
-              {referrals.map((c) => (
-                <ChatItem key={c.id} chat={c} />
-              ))}
+        <div className="space-y-10">
+          {groups.map((g) => (
+            <section key={g.title}>
+              <h2 className="mb-3 text-sm font-medium text-stone">{g.title}</h2>
+              <div className="space-y-3">
+                {g.items.map((c) => (
+                  <ChatItem key={c.id} chat={c} />
+                ))}
+              </div>
             </section>
-          )}
-          {past.length > 0 && (
-            <section className="space-y-4">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Past ({past.length})</h2>
-              {past.map((c) => (
-                <ChatItem key={c.id} chat={c} />
-              ))}
-            </section>
-          )}
+          ))}
         </div>
       )}
     </div>
   );
 }
 
+function ChatsSkeleton() {
+  return (
+    <div className="mx-auto max-w-3xl space-y-3 px-5 py-12">
+      <div className="mb-8 h-10 w-32 animate-pulse rounded-xl bg-stone-100" />
+      {[0, 1, 2].map((i) => (
+        <div key={i} className="h-28 animate-pulse rounded-2xl border border-line bg-white" />
+      ))}
+    </div>
+  );
+}
+
 export default function ChatsPage() {
   return (
-    <Suspense fallback={<div className="mx-auto mt-10 h-[600px] max-w-4xl animate-pulse rounded-2xl bg-secondary" />}>
+    <Suspense fallback={<ChatsSkeleton />}>
       <Chats />
     </Suspense>
   );
